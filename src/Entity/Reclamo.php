@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use App\Repository\ReclamoRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Doctrine\DBAL\Types\Types;
 
 #[ORM\Entity(repositoryClass: ReclamoRepository::class)]
 class Reclamo
@@ -31,9 +32,18 @@ class Reclamo
     #[ORM\Column(length: 255)]
     private ?string $Motivo = null;
 
-    public function getId(): ?int
+    #[ORM\Column(name: 'detalle', type: Types::TEXT, nullable: true)]
+    private ?string $Detalle = null;
+
+    #[ORM\Column(length: 255)]
+    private ?string $estado = 'Pendiente';
+
+    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
+    private ?\DateTimeInterface $fechaCreacion = null;
+
+    public function __construct()
     {
-        return $this->id;
+        $this->fechaCreacion = new \DateTime();
     }
 
     public function getServicio(): ?string
@@ -41,11 +51,19 @@ class Reclamo
         return $this->Servicio;
     }
 
-    public function setServicio(string $Servicio): static
+    public function setServicio(?string $Servicio): void
     {
         $this->Servicio = $Servicio;
+    }
 
-        return $this;
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
+
+    public function setId(?int $id): void
+    {
+        $this->id = $id;
     }
 
     public function getNumeroCliente(): ?string
@@ -53,11 +71,9 @@ class Reclamo
         return $this->numeroCliente;
     }
 
-    public function setNumeroCliente(string $numeroCliente): static
+    public function setNumeroCliente(?string $numeroCliente): void
     {
         $this->numeroCliente = $numeroCliente;
-
-        return $this;
     }
 
     public function getNumeroMedidor(): ?string
@@ -65,11 +81,9 @@ class Reclamo
         return $this->numeroMedidor;
     }
 
-    public function setNumeroMedidor(string $numeroMedidor): static
+    public function setNumeroMedidor(?string $numeroMedidor): void
     {
         $this->numeroMedidor = $numeroMedidor;
-
-        return $this;
     }
 
     public function getDomicilio(): ?string
@@ -77,11 +91,9 @@ class Reclamo
         return $this->Domicilio;
     }
 
-    public function setDomicilio(string $Domicilio): static
+    public function setDomicilio(?string $Domicilio): void
     {
         $this->Domicilio = $Domicilio;
-
-        return $this;
     }
 
     public function getUsuario(): ?string
@@ -89,11 +101,9 @@ class Reclamo
         return $this->Usuario;
     }
 
-    public function setUsuario(string $Usuario): static
+    public function setUsuario(?string $Usuario): void
     {
         $this->Usuario = $Usuario;
-
-        return $this;
     }
 
     public function getMotivo(): ?string
@@ -101,10 +111,44 @@ class Reclamo
         return $this->Motivo;
     }
 
-    public function setMotivo(string $Motivo): static
+    public function setMotivo(?string $Motivo): void
     {
         $this->Motivo = $Motivo;
+    }
 
+
+    public function getDetalle(): ?string
+    {
+        return $this->Detalle;
+    }
+
+    public function setDetalle(?string $Detalle): static
+    {
+        $this->Detalle = $Detalle;
+
+        return $this;
+    }
+
+    public function getEstado(): ?string
+    {
+        return $this->estado;
+    }
+
+    public function setEstado(string $estado): static
+    {
+        $this->estado = $estado;
+
+        return $this;
+    }
+
+    public function getFechaCreacion(): ?\DateTimeInterface
+    {
+        return $this->fechaCreacion;
+    }
+
+    public function setFechaCreacion(?\DateTimeInterface $fechaCreacion): static
+    {
+        $this->fechaCreacion = $fechaCreacion;
         return $this;
     }
 }
