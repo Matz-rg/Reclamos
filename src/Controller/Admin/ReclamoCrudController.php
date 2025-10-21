@@ -18,15 +18,26 @@ use EasyCorp\Bundle\EasyAdminBundle\Config\Filters;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\TextFilter;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\ChoiceFilter;
 use Doctrine\Persistence\ManagerRegistry;
+use Symfony\Component\DependencyInjection\Attribute\Target;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
+use Symfony\Component\Mailer\Mailer;
+use Symfony\Component\Mailer\MailerInterface;
+use Symfony\Component\Mime\Email;
+use Symfony\Component\Workflow\WorkflowInterface;
+use Symfony\Config\Framework\WorkflowsConfig;
 
 #[AdminRoute(path:('/reclamo/current'), name: 'reclamo_current')]
 class ReclamoCrudController extends AbstractCrudController
 {
     private ManagerRegistry $registry;
-    public function __construct(ManagerRegistry $registry)
+    private MailerInterface $mailer;
+    private WorkflowInterface $workflow;
+    public function __construct(ManagerRegistry $registry, MailerInterface $mailer, #[Target('atencion_reclamo')]WorkflowInterface $workflow)
     {
       $this->registry = $registry;
+      $this->mailer = $mailer;
+      $this->workflow = $workflow;
     }
 
     public static function getEntityFqcn(): string
@@ -58,6 +69,7 @@ class ReclamoCrudController extends AbstractCrudController
                 'Pendiente' => 'Pendiente',
                 'Atendido' => 'Atendido',
                 'En Proceso' => 'En Proceso',
+                'Creado' => 'Creado',
             ]));
     }
 
@@ -77,11 +89,13 @@ class ReclamoCrudController extends AbstractCrudController
                     'Pendiente' => 'Pendiente',
                     'Atendido' => 'Atendido',
                     'En Proceso' => 'En Proceso',
+                    'Creado' => 'Creado',
                 ])
                 ->renderAsBadges([
                     'Pendiente' => 'warning',
                     'Atendido' => 'success',
                     'En Proceso' => 'info',
+                    'Creado' => 'secondary',
                 ]),
             DateTimeField::new('fechaCreacion')
                 ->setFormat('dd/MM/yyyy HH:mm')
@@ -91,26 +105,39 @@ class ReclamoCrudController extends AbstractCrudController
 
     public function configureActions(Actions $actions): Actions
     {
-        $atencionAction = Action::new('atencion', 'Atención', 'fa fa-check-circle')
-            ->linkToCrudAction('atencionReclamo')
+        $workflow = $this->workflow;
+
+        $procesoAction = Action::new('procesoReclamo', 'Proceso', 'fa fa-check-circle')
+            ->linkToCrudAction('procesoReclamo')
             ->setCssClass('btn btn-success')
-            ->displayIf(fn(Reclamo $reclamo) => $reclamo->getEstado() !== 'Atendido');
+            ->displayIf(static function ($entity) use ($workflow) {
+                return $workflow->can($entity, 'to_process');
+            });
+
+        $derivarAction = Action::new('derivarReclamo', 'Derivar', 'fa fa-check-circle')
+            ->linkToCrudAction('derivarReclamo')
+            ->setCssClass('btn btn-primary')
+            ->displayIf(static function ($entity) use ($workflow) {
+                return $workflow->can($entity, 'to_pending');
+            });
+        $atendidoAction = Action::new('atencionReclamo', 'Atendido', 'fa fa-check-circle')
+            ->linkToCrudAction('atencionReclamo')
+            ->setCssClass('btn btn-primary')
+            ->displayIf(static function ($entity) use ($workflow) {
+                return $workflow->can($entity, 'to_success') || $workflow->can($entity, 'to_close');
+            });
+
+
+
 
         return $actions
 
             ->add(Crud::PAGE_INDEX, Action::DETAIL)
+            ->add(Crud::PAGE_DETAIL, $procesoAction)
+            ->add(Crud::PAGE_DETAIL, $derivarAction)
+            ->add(Crud::PAGE_DETAIL, $atendidoAction)
+            ;
 
-            ->add(Crud::PAGE_DETAIL, $atencionAction)
-
-            ->update(Crud::PAGE_INDEX, Action::DETAIL, function (Action $action) {
-                return $action->setLabel('Ver')->setIcon('fa fa-eye');
-            })
-            ->update(Crud::PAGE_INDEX, Action::EDIT, function (Action $action) {
-                return $action->setLabel('Editar')->setIcon('fa fa-edit');
-            })
-            ->update(Crud::PAGE_INDEX, Action::DELETE, function (Action $action) {
-                return $action->setLabel('Eliminar')->setIcon('fa fa-trash');
-            });
     }
 
     /*public function atencionReclamo(EntityManagerInterface $entityManager): Response
@@ -137,17 +164,73 @@ class ReclamoCrudController extends AbstractCrudController
             'entityId' => $reclamoId,
         ]);
     }*/
+
+
+
     #[AdminRoute(path: '/reclamo/atencion', name: 'reclamo_atencion')]
     public function atencionReclamo(AdminContext $context): Response
     {
 
         $reclamo = $context->getEntity()->getInstance();
         $reclamo->setEstado('Atendido');
+        $this->workflow->apply($reclamo, 'to_success');
+        $this->registry->getManager()->persist($reclamo);
+        $this->registry->getManager()->flush();
+        $this->sendEmail($reclamo);
 
+
+        return $this->redirectToRoute('admin_reclamo_current_detail', ['entityId' => $reclamo->getId()]);
+
+    }
+    #[AdminRoute(path: '/reclamo/proceso', name: 'reclamo_proceso')]
+    public function procesoReclamo(AdminContext $context): Response
+    {
+        $reclamo = $context->getEntity()->getInstance();
+
+
+        $this->workflow->apply($reclamo, 'to_process');
         $this->registry->getManager()->persist($reclamo);
         $this->registry->getManager()->flush();
 
+        $this->addFlash('success', sprintf('El reclamo N°%d fue marcado como "En Proceso".', $reclamo->getId()));
+
         return $this->redirectToRoute('admin_reclamo_current_detail', ['entityId' => $reclamo->getId()]);
+    }
+
+    #[AdminRoute(path: '/reclamo/derivar', name: 'reclamo_derivar')]
+    public function derivarReclamo(AdminContext $context): Response
+    {
+        $reclamo = $context->getEntity()->getInstance();
+
+        $this->workflow->apply($reclamo, 'to_pending');
+        $this->registry->getManager()->persist($reclamo);
+        $this->registry->getManager()->flush();
+
+        $this->addFlash('info', sprintf('El reclamo N°%d fue derivado correctamente.', $reclamo->getId()));
+
+        return $this->redirectToRoute('admin_reclamo_current_detail', ['entityId' => $reclamo->getId()]);
+    }
+
+
+
+    public function sendEmail(Reclamo $reclamo): void
+    {
+        $email = (new Email())
+            ->from('hello@example.com')
+            ->to('you@example.com')
+            //->cc('cc@example.com')
+            //->bcc('bcc@example.com')
+            //->replyTo('fabien@example.com')
+            //->priority(Email::PRIORITY_HIGH)
+            ->subject('Time for Symfony Mailer!')
+            ->text('Sending emails is fun again!')
+            ->html('<p> ¡El reclamo N°' . $reclamo->getId() . ' fue atendido correctamente! </p>');
+
+        try {
+            $this->mailer->send($email);
+        } catch (TransportExceptionInterface $e) {
+            dd($e);
+        }
 
     }
 }

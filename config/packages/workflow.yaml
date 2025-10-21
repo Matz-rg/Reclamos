@@ -1,0 +1,31 @@
+# config/packages/workflow.yaml
+framework:
+    workflows:
+        atencion_reclamo:
+            type: 'state_machine'
+            marking_store:
+                type: 'method'
+                property: 'estado'
+            # The "supports" option is useful only if you are using Twig functions ('workflow_*')
+            supports:
+                - App\Entity\Reclamo
+            initial_marking: Creado
+            places:
+                - Creado
+                - En Proceso
+                - Pendiente
+                - Atendido
+            transitions:
+                to_process:
+                    from: Creado
+                    to: En Proceso
+                to_pending:
+                    from: En Proceso
+                    to: Pendiente
+                to_success:
+                    from: En Proceso
+                    to: Atendido
+                to_close:
+                    from: Pendiente
+                    to: Atendido
+

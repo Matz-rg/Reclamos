@@ -47,6 +47,8 @@ final class ReclamoFactory extends PersistentProxyObjectFactory
             'numeroCliente' => 'CLI-' . self::faker()->numerify('######'),
             'numeroMedidor' => 'MED-' . self::faker()->numerify('########'),
             'Detalle' => self::faker()->sentence(),
+            'Estado' => self::faker()->randomElement(['Creado', 'En Proceso', 'Atendido', 'Pendiente']),
+
         ];
     }
 

@@ -128,6 +128,15 @@
             "./config/packages/mailer.yaml"
         ]
     },
+    "symfony/mailtrap-mailer": {
+        "version": "7.3",
+        "recipe": {
+            "repo": "github.com/symfony/recipes",
+            "branch": "main",
+            "version": "7.2",
+            "ref": "e1d25e0fab8778b977233aff6762d3791eab3155"
+        }
+    },
     "symfony/maker-bundle": {
         "version": "1.64",
         "recipe": {
@@ -257,6 +266,18 @@
         "files": [
             "./config/packages/web_profiler.yaml",
             "./config/routes/web_profiler.yaml"
+        ]
+    },
+    "symfony/workflow": {
+        "version": "7.3",
+        "recipe": {
+            "repo": "github.com/symfony/recipes",
+            "branch": "main",
+            "version": "3.3",
+            "ref": "3b2f8ca32a07fcb00f899649053943fa3d8bbfb6"
+        },
+        "files": [
+            "./config/packages/workflow.yaml"
         ]
     },
     "twig/extra-bundle": {

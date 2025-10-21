@@ -36,7 +36,7 @@ class Reclamo
     private ?string $Detalle = null;
 
     #[ORM\Column(length: 255)]
-    private ?string $estado = 'Pendiente';
+    private ?string $estado = 'Creado';
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
     private ?\DateTimeInterface $fechaCreacion = null;

@@ -12,6 +12,6 @@ final class ReclamoStory extends Story
     public function build(): void
     {
         // Crear 15 reclamos de prueba con datos realistas
-        ReclamoFactory::createMany(15);
+        ReclamoFactory::createMany(100);
     }
 }
