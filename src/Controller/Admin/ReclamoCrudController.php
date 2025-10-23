@@ -18,6 +18,7 @@ use EasyCorp\Bundle\EasyAdminBundle\Config\Filters;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\TextFilter;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\ChoiceFilter;
 use Doctrine\Persistence\ManagerRegistry;
+use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Component\DependencyInjection\Attribute\Target;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
@@ -107,25 +108,32 @@ class ReclamoCrudController extends AbstractCrudController
     {
         $workflow = $this->workflow;
 
-        $procesoAction = Action::new('procesoReclamo', 'Proceso', 'fa fa-check-circle')
-            ->linkToCrudAction('procesoReclamo')
+        $atendidoAction = Action::new('atencionReclamo', 'Atendido', 'fa fa-check-circle')
+            ->linkToCrudAction('atencionReclamo')
             ->setCssClass('btn btn-success')
             ->displayIf(static function ($entity) use ($workflow) {
-                return $workflow->can($entity, 'to_process');
+                return $workflow->can($entity, 'to_success');
             });
-
-        $derivarAction = Action::new('derivarReclamo', 'Derivar', 'fa fa-check-circle')
-            ->linkToCrudAction('derivarReclamo')
+        $cerrarAction = Action::new('cerrarReclamo', 'Atendido', 'fa fa-check-circle')
+            ->linkToCrudAction('cerrarReclamo')
+            ->setCssClass('btn btn-success')
+            ->displayIf(static function ($entity) use ($workflow) {
+                return $workflow->can($entity, 'to_close');
+            });
+        $pendingAction = Action::new('pendingReclamo', 'Pendiente', 'fa fa-check-circle')
+            ->linkToCrudAction('pendingReclamo')
             ->setCssClass('btn btn-primary')
             ->displayIf(static function ($entity) use ($workflow) {
                 return $workflow->can($entity, 'to_pending');
             });
-        $atendidoAction = Action::new('atencionReclamo', 'Atendido', 'fa fa-check-circle')
-            ->linkToCrudAction('atencionReclamo')
+
+        $derivarAction = Action::new('derivarReclamo', 'Derivar a guardia', 'fa fa-check-circle')
+            ->linkToCrudAction('derivarReclamo')
             ->setCssClass('btn btn-primary')
             ->displayIf(static function ($entity) use ($workflow) {
-                return $workflow->can($entity, 'to_success') || $workflow->can($entity, 'to_close');
+                return $workflow->can($entity, 'to_derived');
             });
+
 
 
 
@@ -133,9 +141,10 @@ class ReclamoCrudController extends AbstractCrudController
         return $actions
 
             ->add(Crud::PAGE_INDEX, Action::DETAIL)
-            ->add(Crud::PAGE_DETAIL, $procesoAction)
+            ->add(Crud::PAGE_DETAIL, $pendingAction)
             ->add(Crud::PAGE_DETAIL, $derivarAction)
             ->add(Crud::PAGE_DETAIL, $atendidoAction)
+            ->add(Crud::PAGE_DETAIL, $cerrarAction)
             ;
 
     }
@@ -167,32 +176,49 @@ class ReclamoCrudController extends AbstractCrudController
 
 
 
-    #[AdminRoute(path: '/reclamo/atencion', name: 'reclamo_atencion')]
+    #[AdminRoute(path: '/reclamo/atendido', name: 'reclamo_atendido')]
     public function atencionReclamo(AdminContext $context): Response
     {
 
         $reclamo = $context->getEntity()->getInstance();
-        $reclamo->setEstado('Atendido');
+
         $this->workflow->apply($reclamo, 'to_success');
         $this->registry->getManager()->persist($reclamo);
         $this->registry->getManager()->flush();
         $this->sendEmail($reclamo);
 
+        $this->addFlash('success', sprintf('El reclamo N°%d fue marcado como "Atendido".', $reclamo->getId()));
 
         return $this->redirectToRoute('admin_reclamo_current_detail', ['entityId' => $reclamo->getId()]);
 
     }
-    #[AdminRoute(path: '/reclamo/proceso', name: 'reclamo_proceso')]
-    public function procesoReclamo(AdminContext $context): Response
+
+    #[AdminRoute(path: '/reclamo/cerrar', name: 'reclamo_cerrar')]
+    public function cerrarReclamo(AdminContext $context): Response
+    {
+
+        $reclamo = $context->getEntity()->getInstance();
+
+        $this->workflow->apply($reclamo, 'to_close');
+        $this->registry->getManager()->persist($reclamo);
+        $this->registry->getManager()->flush();
+        $this->sendEmail($reclamo);
+
+        $this->addFlash('success', sprintf('El reclamo N°%d fue marcado como "Atendido".', $reclamo->getId()));
+
+        return $this->redirectToRoute('admin_reclamo_current_detail', ['entityId' => $reclamo->getId()]);
+
+    }
+    #[AdminRoute(path: '/reclamo/pendiente', name: 'reclamo_pendiente')]
+    public function pendingReclamo(AdminContext $context): Response
     {
         $reclamo = $context->getEntity()->getInstance();
 
-
-        $this->workflow->apply($reclamo, 'to_process');
+        $this->workflow->apply($reclamo, 'to_pending');
         $this->registry->getManager()->persist($reclamo);
         $this->registry->getManager()->flush();
 
-        $this->addFlash('success', sprintf('El reclamo N°%d fue marcado como "En Proceso".', $reclamo->getId()));
+        $this->addFlash('success', sprintf('El reclamo N°%d fue marcado como "Pendiente".', $reclamo->getId()));
 
         return $this->redirectToRoute('admin_reclamo_current_detail', ['entityId' => $reclamo->getId()]);
     }
@@ -202,7 +228,7 @@ class ReclamoCrudController extends AbstractCrudController
     {
         $reclamo = $context->getEntity()->getInstance();
 
-        $this->workflow->apply($reclamo, 'to_pending');
+        $this->workflow->apply($reclamo, 'to_derived');
         $this->registry->getManager()->persist($reclamo);
         $this->registry->getManager()->flush();
 
@@ -215,16 +241,19 @@ class ReclamoCrudController extends AbstractCrudController
 
     public function sendEmail(Reclamo $reclamo): void
     {
-        $email = (new Email())
+        $email = (new TemplatedEmail())
             ->from('hello@example.com')
             ->to('you@example.com')
-            //->cc('cc@example.com')
-            //->bcc('bcc@example.com')
-            //->replyTo('fabien@example.com')
-            //->priority(Email::PRIORITY_HIGH)
             ->subject('Time for Symfony Mailer!')
             ->text('Sending emails is fun again!')
-            ->html('<p> ¡El reclamo N°' . $reclamo->getId() . ' fue atendido correctamente! </p>');
+            ->htmlTemplate('emails/notificacion.html.twig')
+            ->textTemplate('emails/notificacion.txt.twig')
+            ->attach()
+            ->context([
+                'reclamo' => $reclamo,
+
+           ])
+           ;
 
         try {
             $this->mailer->send($email);

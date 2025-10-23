@@ -16,7 +16,7 @@ framework:
                 - Pendiente
                 - Atendido
             transitions:
-                to_process:
+                to_derived:
                     from: Creado
                     to: En Proceso
                 to_pending:

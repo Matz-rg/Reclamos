@@ -9,16 +9,15 @@
 </head>
 <body>
 
-    <h1>Welcome {{ email.toName }}!</h1>
+    <h1>El sistema de reclamos se contacta con: <br> {{ reclamo.usuario }}!</h1>
 
     <p>
-        You signed up as {{ username }} the following email:
+        Su reclamo N°{{ reclamo.id }} ya ha sido revisado, este se encuentra {{ reclamo.estado }}
     </p>
-    <p><code>{{ email.to[0].address }}</code></p>
 
     <p>
-       <a href="https://127.0.0.1:8000/admin/reclamo/current">Activate your account</a>
-       (this link is valid until {{ expiration_date|date('F jS') }})
+       <a href="https://127.0.0.1:8000/admin/reclamo/current">Si tiene alguna consulta, puede ingresar al siguiente enlace</a>
+
     </p>
 </body>
 </html>
