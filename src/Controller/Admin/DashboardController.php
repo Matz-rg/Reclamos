@@ -42,6 +42,7 @@ class DashboardController extends AbstractDashboardController
     {
         return Dashboard::new()
             ->setTitle('Reclamos');
+
     }
 
     public function configureMenuItems(): iterable

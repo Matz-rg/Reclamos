@@ -1,0 +1,23 @@
+{
+  "devDependencies": {
+    "@hotwired/stimulus": "^3.0.0",
+    "@hotwired/turbo": "^7.1.0 || ^8.0",
+    "@symfony/stimulus-bridge": "^3.2.0 || ^4.0.0",
+    "@symfony/ux-turbo": "file:vendor/symfony/ux-turbo/assets",
+    "@symfony/webpack-encore": "^5.2.0",
+    "bootstrap": "^5.3.8",
+    "core-js": "^3.46.0",
+    "file-loader": "^6.0.0",
+    "webpack-dev-server": "^5.2.2"
+  },
+  "scripts": {
+    "dev-server": "encore dev-server",
+    "dev": "encore dev",
+    "build": "encore production"
+  },
+  "dependencies": {
+    "font-awesome": "^4.7.0",
+    "jquery": "^3.7.1",
+    "popper.js": "^1.16.1"
+  }
+}

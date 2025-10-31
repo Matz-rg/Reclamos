@@ -1,37 +1,93 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}SRDS{% endblock %}
+{% block title %}SDRS{% endblock %}
 
-{% block body %}
-<style>
-    .example-wrapper {
-        margin: 1em auto;
-        max-width: 800px;
-        width: 95%;
-        font: 18px/1.5 sans-serif;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        min-height: 50vh;
-        text-align: center;
-        background-color: #1e293b;
-        color: white;
-        border-radius: 15px;
-        padding-left: 10rem;
-        padding-right: 10rem;
-    }
-    .parser-introductorio {text-align: justify}
-    .example-wrapper code { background: #F5F5F5; padding: 2px 6px; }
-</style>
-
-<div class="example-wrapper" >
-    <h1>Bienvenido al {{ title_name_service|upper }}! ✅</h1>
-
-    <p class="parser-introductorio">En el <b>{{ title_name_service }}</b>, nuestra prioridad es brindarle la mejor experiencia y servicio. Si no ha quedado satisfecho con algún aspecto de nuestro servicio, le invitamos a utilizar este canal oficial para registrar su reclamo. Nos comprometemos a revisar cada caso de manera diligente, objetiva y confidencial, para ofrecerle una respuesta oportuna y una solución efectiva.</p>
-
-    <br>
-</div>
+{% block stylesheets %}
+    {{ encore_entry_link_tags('app') }}
 {% endblock %}
 
 
+
+{% block body %}
+
+    <header class="header sticky-top d-flex align-items-center justify-content-between py-3 px-4 bg-white border-bottom shadow-sm">
+        <div class="logo-wrap d-flex align-items-center gap-2">
+            <img class="logo-head" src="{{ asset('build/images/Sistema.png') }}" alt="Logo SPSE">
+        </div>
+
+        <nav class="nav d-flex">
+            <a class="nav-link text-primary ms-3 px-2 py-1 rounded" href="#inicio">Inicio</a>
+            <a class="nav-link text-primary ms-3 px-2 py-1 rounded" href="#sistema">Sistema</a>
+            <a class="nav-link text-primary ms-3 px-2 py-1 rounded" href="#contactos">Contactos</a>
+        </nav>
+    </header>
+
+    <main class="container">
+
+
+        <section id="inicio" class="hero my-4 p-4 bg-white text-body rounded-3 text-center border shadow">
+            <img class="logo" src="{{ asset('build/images/Sistema.png') }}" alt="Logo SPSE">
+            <h1 class="h1 text-primary mb-2 mt-0">Sistema de Reclamos SPSE</h1>
+            <p class="text-muted mx-auto mb-3">Este es el canal oficial para informar incidencias o solicitar atención sobre nuestros servicios. Para iniciar, verifique sus datos, describa claramente el problema y adjunte documentación si corresponde. Cada caso se revisa con seriedad y recibirá actualizaciones por este medio.</p>
+            <a id="liveToastBtn" class="btn btn-primary mt-3 shadow-sm rounded-3 fw-semibold" href="{{ path('admin') }}">
+                Ingresar al Sistema
+            </a>
+        </section>
+
+        <div class="toast-container position-fixed top-0 end-0 p-3">
+            <div id="liveToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="toast-header">
+                    <img src="{{ asset('build/images/icon-trasformation.svg') }}" class="rounded me-2" alt="Bootstrap" width="50" height="50">
+                    <strong class="me-auto">CARGANDO...</strong>
+                    <div class="spinner-border m-1" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+                <div class="toast-body">
+                    Esta por ingresar al sistema de reclamos.
+                </div>
+            </div>
+        </div>
+
+        <section id="sistema" class="section my-3 p-4 bg-light rounded-3 text-body border shadow-sm">
+            <h2 class="text-primary fw-bold d-flex align-items-center gap-2 mb-2">Cómo funciona</h2>
+            <div class="steps row gy-3 text-muted">
+                <div class="step col-12 d-flex align-items-start gap-2 p-3 bg-white rounded-3 border shadow-sm"><span class="num badge bg-primary rounded-circle d-inline-flex align-items-center justify-content-center fw-bold shadow-sm">1</span><div class="content">Cree su reclamo desde el sistema y obtenga un número de seguimiento.</div></div>
+                <div class="step col-12 d-flex align-items-start gap-2 p-3 bg-white rounded-3 border shadow-sm"><span class="num badge bg-primary rounded-circle d-inline-flex align-items-center justify-content-center fw-bold shadow-sm">2</span><div class="content">El área responsable evalúa el caso y puede solicitar información adicional.</div></div>
+                <div class="step col-12 d-flex align-items-start gap-2 p-3 bg-white rounded-3 border shadow-sm"><span class="num badge bg-primary rounded-circle d-inline-flex align-items-center justify-content-center fw-bold shadow-sm">3</span><div class="content">Recibirá avisos de avance y resolución directamente en la plataforma.</div></div>
+                <div class="step col-12 d-flex align-items-start gap-2 p-3 bg-white rounded-3 border shadow-sm"><span class="num badge bg-primary rounded-circle d-inline-flex align-items-center justify-content-center fw-bold shadow-sm">4</span><div class="content">Puede consultar el estado en cualquier momento con su número.</div></div>
+            </div>
+        </section>
+
+        <section id="contactos" class="section my-3 p-4 bg-light rounded-3 text-body border shadow-sm">
+            <h2 class="text-primary fw-bold d-flex align-items-center gap-2 mb-2">Contactos</h2>
+            <p>Si necesita asistencia adicional, comuníquese con atención al cliente por los canales habituales o acérquese a una sucursal.</p>
+        </section>
+    </main>
+
+    <footer class="footer mt-4 py-3 px-4 text-center text-muted border-top bg-white shadow-sm">
+        © {{ "now"|date("Y") }} SPSE — Sistema de Reclamos
+    </footer>
+
+    <!--
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const toastTrigger = document.getElementById('liveToastBtn')
+            const toastLiveExample = document.getElementById('liveToast')
+
+            if (toastTrigger) {
+                const toastBootstrap = bootstrap.Toast.getOrCreateInstance(toastLiveExample)
+                toastTrigger.addEventListener('click', () => {
+                    toastBootstrap.show()
+                })
+            }
+        })
+    </script>
+    -->
+
+{% endblock %}
+
+{% block javascripts %}
+    {{(encore_entry_script_tags('app')) }}
+{% endblock %}

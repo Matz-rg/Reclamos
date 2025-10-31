@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Reclamo #{{ reclamo.id }}</title>
+
+    <style>
+
+        body { font-family: DejaVu Sans, sans-serif; font-size: 12px; }
+        .header { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #333; padding-bottom: 10px; }
+        .section { margin-bottom: 15px; }
+        .label { font-weight: bold; }
+        .badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-size: 11px;
+            color: white;
+        }
+        .badge-warning { background-color: #ffc107; }
+        .badge-success { background-color: #28a745; }
+        .badge-info { background-color: #17a2b8; }
+        .badge-secondary { background-color: #6c757d; }
+    </style>
+
+
+</head>
+<body>
+<div class="header">
+    <h1>Reclamo #{{ reclamo.id }}</h1>
+    <p>Sistema de Gestión de Reclamos</p>
+</div>
+
+<div class="section">
+    <div><span class="label">Servicio:</span> {{ reclamo.Servicio }}</div>
+    <div><span class="label">N° Cliente:</span> {{ reclamo.numeroCliente }}</div>
+    <div><span class="label">N° Medidor:</span> {{ reclamo.numeroMedidor }}</div>
+    <div><span class="label">Domicilio:</span> {{ reclamo.Domicilio }}</div>
+    <div><span class="label">Usuario:</span> {{ reclamo.Usuario }}</div>
+    <div><span class="label">Motivo:</span> {{ reclamo.Motivo }}</div>
+</div>
+
+<div class="section">
+    <div class="label">Detalle:</div>
+    <div>{{ reclamo.Detalle|default('Sin detalle') }}</div>
+</div>
+
+<div class="section">
+    <div><span class="label">Estado:</span>
+        <span class="badge badge-{{
+        reclamo.estado == 'Pendiente' ? 'warning' :
+        (reclamo.estado == 'Atendido' ? 'success' :
+        (reclamo.estado == 'En Proceso' ? 'info' : 'secondary'))
+        }}">{{ reclamo.estado }}</span>
+    </div>
+    <div><span class="label">Fecha de creación:</span> {{ reclamo.fechaCreacion|date('d/m/Y H:i') }}</div>
+</div>
+</body>
+</html>
