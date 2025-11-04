@@ -272,7 +272,6 @@
                 ->subject('Time for Symfony Mailer!')
                 ->text('Sending emails is fun again!')
                 ->htmlTemplate('emails/notificacion.html.twig')
-                ->textTemplate('emails/notificacion.txt.twig')
                 ->context([
                     'reclamo' => $reclamo,
                 ]);

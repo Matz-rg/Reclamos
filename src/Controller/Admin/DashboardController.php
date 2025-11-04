@@ -3,6 +3,7 @@
 namespace App\Controller\Admin;
 
 use App\Entity\Reclamo;
+use App\Entity\User;
 use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminDashboard;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Dashboard;
 use EasyCorp\Bundle\EasyAdminBundle\Config\MenuItem;
@@ -20,7 +21,10 @@ class DashboardController extends AbstractDashboardController
         // Option 1. You can make your dashboard redirect to some common page of your backend
         //
         // 1.1) If you have enabled the "pretty URLs" feature:
-        return $this->redirectToRoute('admin_reclamo_current_index');
+        return
+            $this->redirectToRoute('admin_reclamo_current_index');
+
+
         //
         // 1.2) Same example but using the "ugly URLs" that were used in previous EasyAdmin versions:
         // $adminUrlGenerator = $this->container->get(AdminUrlGenerator::class);
@@ -49,6 +53,7 @@ class DashboardController extends AbstractDashboardController
     {
         yield MenuItem::linkToDashboard('Dashboard', 'fa fa-home');
         yield MenuItem::linkToCrud('Reclamos', 'fas fa-list', Reclamo::class);
+        yield MenuItem::linkToCrud('User', 'fas fa-list', User::class);
     }
 
 
