@@ -10,6 +10,7 @@
     use EasyCorp\Bundle\EasyAdminBundle\Context\AdminContext;
     use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
     use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
+    use EasyCorp\Bundle\EasyAdminBundle\Field\IntegerField;
     use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
     use EasyCorp\Bundle\EasyAdminBundle\Field\TextareaField;
     use EasyCorp\Bundle\EasyAdminBundle\Field\DateTimeField;
@@ -29,13 +30,19 @@
     use Symfony\Component\Mime\Email;
     use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
     use Symfony\Component\Workflow\WorkflowInterface;
-    use Symfony\Config\Framework\WorkflowsConfig;
     use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
     use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
     use Twig\Environment;
-    use Twig\Error\LoaderError;
-    use Twig\Error\RuntimeError;
-    use Twig\Error\SyntaxError;
+    use Symfony\Bundle\SecurityBundle\Security;
+    use Doctrine\ORM\EntityManagerInterface;
+    use EasyCorp\Bundle\EasyAdminBundle\Dto\SearchDto;
+    use EasyCorp\Bundle\EasyAdminBundle\Dto\EntityDto;
+    use EasyCorp\Bundle\EasyAdminBundle\Collection\FieldCollection;
+    use EasyCorp\Bundle\EasyAdminBundle\Collection\FilterCollection;
+    use Doctrine\ORM\QueryBuilder;
+    use Symfony\Component\HttpFoundation\BinaryFileResponse;
+    use Symfony\Component\HttpFoundation\ResponseHeaderBag;
+    use Symfony\Component\HttpFoundation\RedirectResponse;
 
     #[AdminRoute(path:('/reclamo/current'), name: 'reclamo_current')]
     class ReclamoCrudController extends AbstractCrudController
@@ -43,6 +50,8 @@
         private ManagerRegistry $registry;
         private MailerInterface $mailer;
         private WorkflowInterface $workflow;
+        private EntityManagerInterface $entityManager;
+        private Security $security;
         private $adminUrlGenerator;
         Private $pdf;
         private $twig;
@@ -54,7 +63,10 @@
             #[Target('atencion_reclamo')]WorkflowInterface $workflow,
             AdminUrlGenerator $adminUrlGenerator,
             Pdf $pdf,
-            Environment $twig
+            Environment $twig,
+            EntityManagerInterface $entityManager,
+            Security $security,
+
         )
         {
           $this->registry = $registry;
@@ -63,6 +75,9 @@
           $this->adminUrlGenerator = $adminUrlGenerator;
           $this->pdf = $pdf;
           $this->twig = $twig;
+          $this->security = $security;
+          $this->entityManager = $entityManager;
+
         }
 
         public static function getEntityFqcn(): string
@@ -91,9 +106,9 @@
                 ->add(TextFilter::new('Usuario'))
                 ->add(TextFilter::new('Motivo'))
                 ->add(ChoiceFilter::new('estado')->setChoices([
-                    'Pendiente' => 'Pendiente',
-                    'Atendido' => 'Atendido',
-                    'En Proceso' => 'En Proceso',
+                    'Impreso' => 'Impreso',
+                    'Atendiendo' => 'Atendiendo',
+                    'En Guardia' => 'En Guardia',
                     'Creado' => 'Creado',
                 ]));
         }
@@ -103,7 +118,7 @@
             return [
                 IdField::new('id')->onlyOnIndex(),
                 TextField::new('Servicio'),
-                TextField::new('numeroCliente'),
+                IntegerField::new('numeroCliente'),
                 TextField::new('numeroMedidor'),
                 TextField::new('Domicilio'),
                 TextField::new('Usuario'),
@@ -111,15 +126,15 @@
                 TextareaField::new('Detalle')->hideOnIndex(),
                 ChoiceField::new('estado')
                     ->setChoices([
-                        'Pendiente' => 'Pendiente',
-                        'Atendido' => 'Atendido',
-                        'En Proceso' => 'En Proceso',
+                        'Impreso' => 'Impreso',
+                        'Atendiendo' => 'Atendiendo',
+                        'En Guardia' => 'En Guardia',
                         'Creado' => 'Creado',
                     ])
                     ->renderAsBadges([
-                        'Pendiente' => 'warning',
-                        'Atendido' => 'success',
-                        'En Proceso' => 'info',
+                        'Impreso' => 'warning',
+                        'Atendiendo' => 'success',
+                        'En Guardia' => 'info',
                         'Creado' => 'secondary',
                     ]),
                 DateTimeField::new('fechaCreacion')
@@ -144,11 +159,11 @@
                 ->displayIf(static function ($entity) use ($workflow) {
                     return $workflow->can($entity, 'to_close');
                 });
-            $pendingAction = Action::new('pendingReclamo', 'Pendiente', 'fa fa-check-circle')
-                ->linkToCrudAction('pendingReclamo')
+            $impresoAction = Action::new('impresoReclamo', 'Impreso', 'fa fa-check-circle')
+                ->linkToCrudAction('impresoReclamo')
                 ->setCssClass('btn btn-primary')
                 ->displayIf(static function ($entity) use ($workflow) {
-                    return $workflow->can($entity, 'to_pending');
+                    return $workflow->can($entity, 'to_print');
                 });
 
             $derivarAction = Action::new('derivarReclamo', 'Derivar a guardia', 'fa fa-check-circle')
@@ -162,14 +177,27 @@
                 ->linkToCrudAction('reclamoPDF')
                 ->setCssClass('btn btn-danger');
 
+            $generateTicketsBatch = Action::new('reclamoPDFBatch', 'Generar Tickets')
+                ->linkToCrudAction('reclamoPDFBatch')
+                ->addCssClass('btn btn-warning')
+                ->setIcon('fa fa-print');
+
+
+
             return $actions
 
                 ->add(Crud::PAGE_INDEX, Action::DETAIL)
-                ->add(Crud::PAGE_DETAIL, $pendingAction)
+                ->add(Crud::PAGE_DETAIL, $impresoAction)
                 ->add(Crud::PAGE_DETAIL, $derivarAction)
                 ->add(Crud::PAGE_DETAIL, $atendidoAction)
                 ->add(Crud::PAGE_DETAIL, $cerrarAction)
-                ->add(Crud::PAGE_DETAIL, $pdfAction);
+                ->add(Crud::PAGE_DETAIL, $pdfAction)
+                ->addBatchAction($generateTicketsBatch)
+                ->setPermission(Action::NEW, 'ROLE_RECLAMO_ADMIN')
+                ->setPermission(Action::EDIT, 'ROLE_RECLAMO_ADMIN')
+                ->setPermission(Action::DELETE, 'ROLE_RECLAMO_ADMIN')
+
+                ;
 
 
         }
@@ -282,52 +310,6 @@
                 dd($e);
             }
         }
-//        #[AdminRoute(path: '/reclamo/pdf', name: 'reclamo_pdf')]
-//        public function reclamoPDF(AdminContext $context, Pdf $knpSnappyPdf): Response
-//        {
-//            set_time_limit(60);
-//
-//            /** @var Reclamo $reclamo */
-//            $reclamo = $context->getEntity()->getInstance();
-//            $id = $reclamo->getId();
-//
-//            // Opciones en formato correcto
-//            $options = [
-//                'page-size' => 'A4',
-//                'margin-top' => '10mm',
-//                'margin-right' => '10mm',
-//                'margin-bottom' => '10mm',
-//                'margin-left' => '10mm',
-//                'encoding' => 'UTF-8',
-//                'enable-local-file-access' => true,
-//                'dpi' => 96,
-//                'image-dpi' => 96,
-//                'image-quality' => 85,
-//            ];
-//
-//            try {
-//                // Renderizar la plantilla Twig
-//                $html = $this->renderView('pdf/reclamo-pdf.html.twig', [
-//                    'reclamo' => $reclamo
-//                ]);
-//
-//                // Generar pdf desde HTML
-//                $pdfContent = $knpSnappyPdf->getOutputFromHtml($html, $options);
-//
-//                // Devolver respuesta
-//                $response = new Response($pdfContent);
-//                $response->headers->set('Content-Type', 'application/pdf');
-//                $response->headers->set('Content-Disposition',
-//                    ResponseHeaderBag::DISPOSITION_ATTACHMENT . "; filename=\"Reclamo_$id.pdf\""
-//                );
-//
-//                return $response;
-//
-//            } catch (\Exception $e) {
-//                $this->addFlash('error', 'Error al generar el pdf: ' . $e->getMessage());
-//                return $this->redirectToRoute('admin_reclamo_current_detail', ['entityId' => $id]);
-//            }
-//        }
 
 
         #[AdminRoute(path: '/reclamo/pdf', name: 'reclamo_pdf')]
@@ -340,7 +322,6 @@
             ]);
 
             $options = [
-
                 'enable-local-file-access' => true,
                 'encoding' => 'utf-8',
                 'print-media-type' => true,
@@ -348,13 +329,10 @@
                 'margin-right' => '0mm',
                 'margin-bottom' => '0mm',
                 'margin-left' => '0mm',
-                // 'debug-javascript' => true,
-                // 'enable-javascript' => true,
-                // 'javascript-delay' => 500,
                 'no-stop-slow-scripts' => true,
-                'page-width'  => '80mm',
+                'orientation' => 'Landscape',
+                'page-width' => '80mm',
                 'page-height' => '150mm',
-
                ];
 
             $this->pdf->setOptions($options);
@@ -364,5 +342,80 @@
                 'reclamo.pdf'
             );
         }
+
+        #[AdminRoute(path: '/reclamo/pdf/batch', name: 'reclamo_pdf_batch')]
+        public function reclamoPDFBatch(AdminContext $context, AdminUrlGenerator $adminUrlGenerator): PdfResponse|RedirectResponse
+        {
+
+
+            $selectedIds = $context->getRequest()->request->all('batchActionEntityIds');
+
+            $reclamos = $this->entityManager
+                ->getRepository(Reclamo::class)
+                ->findBy(['id' => $selectedIds]);
+
+
+            $html = $this->twig->render('pdf/reclamos-batch.html.twig', [
+                'reclamos' => $reclamos,
+            ]);
+
+            $this->pdf->setOptions([
+                'enable-local-file-access' => true,
+                'encoding' => 'utf-8',
+                'print-media-type' => true,
+                'margin-top' => '2mm',
+                'margin-right' => '0mm',
+                'margin-bottom' => '0mm',
+                'margin-left' => '0mm',
+                'no-stop-slow-scripts' => true,
+                'orientation' => 'Landscape',
+                'page-width' => '80mm',
+                'page-height' => '150mm',
+            ]);
+
+            $fecha = (new \DateTime())->format('d-m-Y_His');
+            $filename = sprintf('reclamos_%s.pdf', $fecha);
+
+            return new PdfResponse(
+                $this->pdf->getOutputFromHtml($html),
+                $filename
+            );
+        }
+
+        public function createIndexQueryBuilder(SearchDto $searchDto, EntityDto $entityDto, FieldCollection $fields, FilterCollection $filters): QueryBuilder
+        {
+            $queryBuilder = parent::createIndexQueryBuilder($searchDto, $entityDto, $fields, $filters);
+            $currentUser = $this->security->getUser();
+
+            if (!$currentUser) {
+                return $queryBuilder;
+            }
+
+            if ($this->security->isGranted('ROLE_RECLAMO_ADMIN')) {
+                return $queryBuilder;
+            }
+
+            if ($this->security->isGranted('ROLE_RECLAMO_GUARDIA_ENERGIA')) {
+                $queryBuilder
+                    ->andWhere('entity.Servicio = :servicio')
+                    ->setParameter('servicio', 'Energia')
+                    ->andWhere('entity.estado IN (:estados)')
+                    ->setParameter('estados', ['En Guardia', 'Atendiendo']);
+                return $queryBuilder;
+            }
+
+            if ($this->security->isGranted('ROLE_RECLAMO_GUARDIA_SANEAMIENTO')) {
+                $queryBuilder
+                    ->andWhere('entity.Servicio IN (:servicios)')
+                    ->setParameter('servicios', ['Agua', 'Cloaca'])
+                    ->andWhere('entity.estado IN (:estados)')
+                    ->setParameter('estados', ['En Guardia', 'Atendiendo']);
+                return $queryBuilder;
+            }
+
+            return $queryBuilder;
+
+        }
+
     }
 

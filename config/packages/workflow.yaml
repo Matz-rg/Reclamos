@@ -12,20 +12,20 @@ framework:
             initial_marking: Creado
             places:
                 - Creado
-                - En Proceso
-                - Pendiente
-                - Atendido
+                - En Guardia
+                - Impreso
+                - Atendiendo
             transitions:
                 to_derived:
                     from: Creado
-                    to: En Proceso
-                to_pending:
-                    from: En Proceso
-                    to: Pendiente
+                    to: En Guardia
+                to_print:
+                    from: En Guardia
+                    to: Impreso
                 to_success:
-                    from: En Proceso
-                    to: Atendido
+                    from: En Guardia
+                    to: Atendiendo
                 to_close:
-                    from: Pendiente
-                    to: Atendido
+                    from: Impreso
+                    to: Atendiendo
 

@@ -36,18 +36,15 @@ final class ReclamoFactory extends PersistentProxyObjectFactory
                 'Instalación defectuosa'
             ]),
             'Servicio' => self::faker()->randomElement([
-                'Agua potable',
-                'Cloacas',
-                'Luz eléctrica',
-                'Gas natural',
-                'Recolección residuos',
-                'Alumbrado público'
+                'Energia',
+                'Agua',
+                'Cloaca'
             ]),
             'Usuario' => self::faker()->name(),
-            'numeroCliente' => 'CLI-' . self::faker()->numerify('######'),
+            'numeroCliente' => self::faker()->numberBetween(310001000000, 540001400000),
             'numeroMedidor' => 'MED-' . self::faker()->numerify('########'),
             'Detalle' => self::faker()->sentence(),
-            'Estado' => self::faker()->randomElement(['Creado', 'En Proceso', 'Atendido', 'Pendiente']),
+            'Estado' => self::faker()->randomElement(['Creado', 'En Guardia', 'Atendiendo', 'Impreso']),
 
         ];
     }

@@ -2,11 +2,34 @@
 
 namespace App\Entity;
 
+
 use App\Repository\ReclamoRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\DBAL\Types\Types;
+use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
+use ApiPlatform\Doctrine\Orm\Filter\DateFilter;
+use ApiPlatform\Metadata\ApiFilter;
+
 
 #[ORM\Entity(repositoryClass: ReclamoRepository::class)]
+#[ORM\Table(name: 'reclamo')]
+#[ApiResource(
+         operations: [
+             new Get(),
+             new GetCollection(),
+         ]
+     )]
+#[ApiFilter(SearchFilter::class, properties: [
+    'estado' => 'exact',
+    'descripcion' => 'partial',
+])]
+#[ApiFilter(DateFilter::class, properties: [
+    'fechaCreacion'
+])]
+
 class Reclamo
 {
     #[ORM\Id]
@@ -17,8 +40,8 @@ class Reclamo
     #[ORM\Column(length: 255)]
     private ?string $Servicio = null;
 
-    #[ORM\Column(length: 255)]
-    private ?string $numeroCliente = null;
+    #[ORM\Column(type: 'bigint', length: 255)]
+    private ?int $numeroCliente = null;
 
     #[ORM\Column(length: 255)]
     private ?string $numeroMedidor = null;
@@ -66,12 +89,12 @@ class Reclamo
         $this->id = $id;
     }
 
-    public function getNumeroCliente(): ?string
+    public function getNumeroCliente(): ?int
     {
         return $this->numeroCliente;
     }
 
-    public function setNumeroCliente(?string $numeroCliente): void
+    public function setNumeroCliente(?int $numeroCliente): void
     {
         $this->numeroCliente = $numeroCliente;
     }

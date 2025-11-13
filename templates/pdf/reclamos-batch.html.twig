@@ -1,0 +1,6 @@
+{% for reclamo in reclamos %}
+    {% include 'pdf/reclamo-pdf.html.twig' with { reclamo: reclamo } %}
+    {% if not loop.last %}
+        <div style="page-break-after: always;"></div>
+    {% endif %}
+{% endfor %}
