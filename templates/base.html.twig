@@ -3,9 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <title>{% block title %}Welcome!{% endblock %}</title>
-    <link rel="icon" href="{{ asset('build/images/icon.svg') }}" type="image/svg+xml">
+    <link rel="icon" href="{{ asset('images/icon.svg') }}" type="image/svg+xml">
 
     {% block stylesheets %}
+            {{ encore_entry_link_tags('app') }}
         {{ encore_entry_link_tags('app') }}
     {% endblock %}
 </head>
@@ -14,6 +15,8 @@
 {% block body %}{% endblock %}
 
 {% block javascripts %}
+            {{ encore_entry_script_tags('app') }}
+            {% block importmap %}{{ importmap('app') }}{% endblock %}
     {{ encore_entry_script_tags('app') }}
 {% endblock %}
 </body>

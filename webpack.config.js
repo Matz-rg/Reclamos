@@ -14,8 +14,6 @@ Encore
     // only needed for CDN's or subdirectory deploy
     //.setManifestKeyPrefix('build/')
 
-
-
     /*
      * ENTRY CONFIG
      *
@@ -44,11 +42,6 @@ Encore
     // .enableBuildNotifications()
 
     .enableSourceMaps(!Encore.isProduction())
-
-    .copyFiles({
-        from: './assets/images',
-        to: 'images/[path][name].[ext]',
-    })
     // enables hashed filenames (e.g. app.abc123.css)
     .enableVersioning(Encore.isProduction())
 
@@ -62,6 +55,8 @@ Encore
         config.useBuiltIns = 'usage';
         config.corejs = '3.38';
     })
+
+    .enableStimulusBridge('./assets/controllers.json')
 
     // enables Sass/SCSS support
     //.enableSassLoader()
@@ -77,13 +72,7 @@ Encore
     //.enableIntegrityHashes(Encore.isProduction())
 
     // uncomment if you're having problems with a jQuery plugin
-    .autoProvideVariables({
-        $: 'jquery',
-        jQuery: 'jquery',
-        'window.jQuery': 'jquery',
-    })
-
-
+    //.autoProvidejQuery()
 ;
 
 module.exports = Encore.getWebpackConfig();

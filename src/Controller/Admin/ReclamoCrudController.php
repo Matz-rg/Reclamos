@@ -43,7 +43,7 @@
     use Symfony\Component\HttpFoundation\BinaryFileResponse;
     use Symfony\Component\HttpFoundation\ResponseHeaderBag;
     use Symfony\Component\HttpFoundation\RedirectResponse;
-
+    use Symfony\Component\Validator\Constraints as Assert;
     #[AdminRoute(path:('/reclamo/current'), name: 'reclamo_current')]
     class ReclamoCrudController extends AbstractCrudController
     {
@@ -118,7 +118,15 @@
             return [
                 IdField::new('id')->onlyOnIndex(),
                 TextField::new('Servicio'),
-                IntegerField::new('numeroCliente'),
+                TextField::new('numeroCliente')
+                    ->setFormTypeOptions([
+                        'constraints' => [
+                            new Assert\NotBlank([ 'message' => 'Ingrese el número de cliente' ]),
+                            new Assert\Regex([ 'pattern' => '/^\d+$/', 'message' => 'Solo se permiten dígitos.' ]),
+                            new Assert\Length([ 'max' => 12, 'maxMessage' => 'El número no puede tener más de {{ limit }} dígitos' ]),
+                        ],
+                        'help' => 'El número de cliente debe tener hasta 12 dígitos',
+                    ]),
                 TextField::new('numeroMedidor'),
                 TextField::new('Domicilio'),
                 TextField::new('Usuario'),
@@ -201,33 +209,6 @@
 
 
         }
-
-        /*public function atencionReclamo(EntityManagerInterface $entityManager): Response
-        {
-            $reclamoId = $this->getContext()->getRequest()->query->get('entityId');
-
-            $reclamo = $entityManager->getRepository(Reclamo::class)->find($reclamoId);
-
-            if (!$reclamo) {
-                throw $this->createNotFoundException('Reclamo no encontrado');
-            }
-
-            // Cambiar el estado a "Atendido"
-            $reclamo->setEstado('Atendido');
-            $entityManager->flush();
-
-            // Agregar mensaje flash de éxito
-            $this->addFlash('success', 'El reclamo ha sido marcado como atendido correctamente.');
-
-            // Redirigir a la vista de detalle del reclamo
-            return $this->redirectToRoute('admin', [
-                'crudAction' => 'detail',
-                'crudControllerFqcn' => self::class,
-                'entityId' => $reclamoId,
-            ]);
-        }*/
-
-
 
         #[AdminRoute(path: '/reclamo/atendido', name: 'reclamo_atendido')]
         public function atencionReclamo(AdminContext $context): Response

@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 
+use ApiPlatform\Metadata\Post;
 use App\Repository\ReclamoRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\DBAL\Types\Types;
@@ -12,10 +13,17 @@ use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
 use ApiPlatform\Doctrine\Orm\Filter\DateFilter;
 use ApiPlatform\Metadata\ApiFilter;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Component\Validator\Context\ExecutionContextInterface;
+use App\Validator\Constraints as AppAssert;
 
 
 #[ORM\Entity(repositoryClass: ReclamoRepository::class)]
-#[ORM\Table(name: 'reclamo')]
+#[ORM\Table(
+    name: 'reclamo',
+    indexes: [ new ORM\Index(name: 'idx_numero_cliente', columns: ['numero_cliente']) ]
+)]
 #[ApiResource(
          operations: [
              new Get(),
@@ -29,7 +37,17 @@ use ApiPlatform\Metadata\ApiFilter;
 #[ApiFilter(DateFilter::class, properties: [
     'fechaCreacion'
 ])]
-
+#[ApiResource(
+    operations: [
+        new Get(),
+        new GetCollection(),
+    ]
+)]
+#[UniqueEntity(
+    fields: ['numeroCliente'],
+    message: 'Este número de cliente ya posee un reclamo registrado.'
+)]
+#[Assert\Callback('validate')]
 class Reclamo
 {
     #[ORM\Id]
@@ -40,8 +58,10 @@ class Reclamo
     #[ORM\Column(length: 255)]
     private ?string $Servicio = null;
 
-    #[ORM\Column(type: 'bigint', length: 255)]
-    private ?int $numeroCliente = null;
+    #[ORM\Column(type: 'bigint', unique: true)]
+    #[Assert\NotBlank]
+    #[AppAssert\ExisteEnSpse]
+    private ?string $numeroCliente = null;
 
     #[ORM\Column(length: 255)]
     private ?string $numeroMedidor = null;
@@ -89,14 +109,15 @@ class Reclamo
         $this->id = $id;
     }
 
-    public function getNumeroCliente(): ?int
+    public function getNumeroCliente(): ?string
     {
         return $this->numeroCliente;
     }
 
-    public function setNumeroCliente(?int $numeroCliente): void
+    public function setNumeroCliente(string $numeroCliente): self
     {
         $this->numeroCliente = $numeroCliente;
+        return $this;
     }
 
     public function getNumeroMedidor(): ?string
@@ -174,4 +195,15 @@ class Reclamo
         $this->fechaCreacion = $fechaCreacion;
         return $this;
     }
+
+    public function validate(ExecutionContextInterface $context)
+    {
+        if ($this->numeroCliente < 310001000000 || $this->numeroCliente > 540001400000) {
+            $context->buildViolation('Número fuera del rango permitido.')
+                ->atPath('numeroCliente')
+                ->addViolation();
+        }
+    }
 }
+
+

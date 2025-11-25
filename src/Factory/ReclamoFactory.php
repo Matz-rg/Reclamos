@@ -5,9 +5,6 @@ namespace App\Factory;
 use App\Entity\Reclamo;
 use Zenstruck\Foundry\Persistence\PersistentProxyObjectFactory;
 
-/**
- * @extends PersistentProxyObjectFactory<Reclamo>
- */
 final class ReclamoFactory extends PersistentProxyObjectFactory
 {
     public function __construct()
@@ -41,18 +38,16 @@ final class ReclamoFactory extends PersistentProxyObjectFactory
                 'Cloaca'
             ]),
             'Usuario' => self::faker()->name(),
-            'numeroCliente' => self::faker()->numberBetween(310001000000, 540001400000),
+            'numeroCliente' => (string) self::faker()->numberBetween(310001000000, 540001400000),
             'numeroMedidor' => 'MED-' . self::faker()->numerify('########'),
             'Detalle' => self::faker()->sentence(),
             'Estado' => self::faker()->randomElement(['Creado', 'En Guardia', 'Atendiendo', 'Impreso']),
-
         ];
     }
 
     protected function initialize(): static
     {
-        return $this
-            // ->afterInstantiate(function(Reclamo $reclamo): void {})
-            ;
+        return $this;
     }
 }
+

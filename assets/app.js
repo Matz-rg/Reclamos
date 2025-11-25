@@ -1,25 +1,45 @@
-/*
- * Welcome to your app's main JavaScript file!
- *
- * We recommend including the built version of this JavaScript file
- * (and its CSS file) in your base layout (base.html.twig).
- */
-
-// any CSS you import will output into a single css file (app.css in this case)
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './styles/app.css';
 import * as bootstrap from 'bootstrap';
-// Exponer Bootstrap globalmente para que la función existente pueda usar `bootstrap.Toast`
+import Chart from 'chart.js/auto';
+
 window.bootstrap = bootstrap;
 
 document.addEventListener('DOMContentLoaded', () => {
-    const toastTrigger = $('liveToastBtn')
-    const toastLiveExample = $('liveToast')
 
-    if (toastTrigger) {
-        const toastBootstrap = bootstrap.Toast.getOrCreateInstance(toastLiveExample)
+    // Toast fix
+    const toastTrigger = document.getElementById('liveToastBtn');
+    const toastLiveExample = document.getElementById('liveToast');
+
+    if (toastTrigger && toastLiveExample) {
+        const toastBootstrap = bootstrap.Toast.getOrCreateInstance(toastLiveExample);
         toastTrigger.addEventListener('click', () => {
-            toastBootstrap.show()
-        })
+            toastBootstrap.show();
+        });
     }
-})
+
+    // Chart
+    const ctx = document.getElementById('myChart');
+
+    if (ctx) {
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange'],
+                datasets: [{
+                    label: '# of Votes',
+                    data: [12, 19, 3, 5, 2, 3],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    }
+
+});

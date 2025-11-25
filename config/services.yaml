@@ -3,6 +3,7 @@
 parameters:
 
 services:
+
     # default configuration for services in *this* file
     _defaults:
         autowire: true      # Automatically injects dependencies in your services.
@@ -20,3 +21,13 @@ services:
     App\EventSubscriber\EventReclamoSubscriber:
         arguments:
             $reclamoStateMachine: '@state_machine.atencion_reclamo'
+
+
+    App\Validator\Constraints\ExisteEnSpseValidator:
+        arguments:
+            $client: '@http_client'
+            $baseUrl: '%env(resolve:SPSE_API_URL)%'
+        tags:
+          - { name: validator.constraint_validator }
+
+
