@@ -15,17 +15,19 @@ framework:
                 - En Guardia
                 - Impreso
                 - Atendiendo
+                - Finalizado
             transitions:
                 to_derived:
                     from: Creado
                     to: En Guardia
-                to_print:
-                    from: En Guardia
-                    to: Impreso
                 to_success:
                     from: En Guardia
                     to: Atendiendo
+                to_print:
+                    from: Atendiendo
+                    to: Impreso
                 to_close:
                     from: Impreso
-                    to: Atendiendo
+                    to: Finalizado
+
 

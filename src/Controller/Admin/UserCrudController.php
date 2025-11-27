@@ -31,6 +31,8 @@ class UserCrudController extends AbstractCrudController
                 'Admin' => 'ROLE_RECLAMO_ADMIN',
                 'Usuario Energía' => 'ROLE_RECLAMO_GUARDIA_ENERGIA',
                 'Usuario Saneamiento' => 'ROLE_RECLAMO_GUARDIA_SANEAMIENTO',
+                'Usuario Atencion' => 'ROLE_RECLAMO_ATENCION_TELEFONISTA',
+                'Usuario Reclamo' => 'ROLE_CREACION_RECLAMO',
 
             ])
             ->allowMultipleChoices(),
