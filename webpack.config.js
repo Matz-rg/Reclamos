@@ -14,6 +14,12 @@ Encore
     // only needed for CDN's or subdirectory deploy
     //.setManifestKeyPrefix('build/')
 
+    .copyFiles({
+            from: './assets/images',
+            to: 'images/[name].[ext]',
+            pattern: /\.(png|jpg|jpeg|svg|gif)$/
+    })
+
     /*
      * ENTRY CONFIG
      *
@@ -73,6 +79,7 @@ Encore
 
     // uncomment if you're having problems with a jQuery plugin
     //.autoProvidejQuery()
+
 ;
 
 module.exports = Encore.getWebpackConfig();

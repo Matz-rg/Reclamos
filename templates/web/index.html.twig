@@ -10,7 +10,7 @@
 
     <header class="header sticky-top d-flex align-items-center justify-content-between py-3 px-4 bg-white border-bottom shadow-sm">
         <div class="logo-wrap d-flex align-items-center gap-2">
-            <img class="logo-head" src="{{ asset('images/Sistema.png') }}" alt="Logo SPSE">
+            <img class="logo-head" src="{{ asset('build/images/Sistema.png') }}" alt="Logo SPSE">
         </div>
 
         <nav class="nav d-flex">
@@ -24,7 +24,7 @@
 
 
         <section id="inicio" class="hero my-4 p-4 bg-white text-body rounded-3 text-center border shadow">
-            <img class="logo" src="{{ asset('images/Sistema.png') }}" alt="Logo SPSE">
+            <img class="logo" src="{{ asset('build/images/Sistema.png') }}" alt="Logo SPSE">
             <h1 class="h1 text-primary mb-2 mt-0">Sistema de Reclamos SPSE</h1>
             <p class="text-muted mx-auto mb-3">Este es el canal oficial para informar incidencias o solicitar atención sobre nuestros servicios. Para iniciar, verifique sus datos, describa claramente el problema y adjunte documentación si corresponde. Cada caso se revisa con seriedad y recibirá actualizaciones por este medio.</p>
             <a id="liveToastBtn" class="btn btn-primary mt-3 shadow-sm rounded-3 fw-semibold" href="{{ path('admin') }}">
@@ -35,7 +35,7 @@
         <div class="toast-container position-fixed top-0 end-0 p-3">
             <div id="liveToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
                 <div class="toast-header">
-                    <img src="{{ asset('images/icon-trasformation.svg') }}" class="rounded me-2" alt="Bootstrap" width="50" height="50">
+                    <img src="{{ asset('build/images/icon-trasformation.svg') }}" class="rounded me-2" alt="Bootstrap" width="50" height="50">
                     <strong class="me-auto">CARGANDO...</strong>
                     <div class="spinner-border m-1" role="status">
                         <span class="visually-hidden">Loading...</span>
@@ -48,11 +48,6 @@
             </div>
         </div>
 
-        <section>
-            <h1 class="h3 mb-4 text-gray-800">Graphiques</h1>
-            <div>
-                {{ render_chart(chart) }}
-        </section>
 
         <section id="sistema" class="section my-3 p-4 bg-light rounded-3 text-body border shadow-sm">
             <h2 class="text-primary fw-bold d-flex align-items-center gap-2 mb-2">Cómo funciona</h2>

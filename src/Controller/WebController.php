@@ -14,6 +14,7 @@ final class WebController extends AbstractController
     public function index(ChartBuilderInterface $chartBuilder): Response
     {
         $chart = $chartBuilder->createChart(Chart::TYPE_LINE);
+
         $chart->setData([
             'labels' => ['January', 'February', 'March', 'April', 'May', 'June', 'July'],
             'datasets' => [
@@ -25,8 +26,14 @@ final class WebController extends AbstractController
                 ],
             ],
         ]);
+
+        $chart->setOptions([
+            'responsive' => true,
+            'maintainAspectRatio' => false
+        ]);
+
         return $this->render('web/index.html.twig', [
-            'cont roller_name' => 'WebController',
+            'controller_name' => 'WebController',
             'title_name_service' => 'Sistema de Reclamos por Servicios',
             'chart' => $chart
         ]);
