@@ -9,6 +9,7 @@
     use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
     use EasyCorp\Bundle\EasyAdminBundle\Context\AdminContext;
     use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
+    use EasyCorp\Bundle\EasyAdminBundle\Field\FormField;
     use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
     use EasyCorp\Bundle\EasyAdminBundle\Field\IntegerField;
     use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
@@ -44,6 +45,8 @@
     use Symfony\Component\HttpFoundation\ResponseHeaderBag;
     use Symfony\Component\HttpFoundation\RedirectResponse;
     use Symfony\Component\Validator\Constraints as Assert;
+    use EasyCorp\Bundle\EasyAdminBundle\Field\Field;
+    use Symfony\Component\Form\Extension\Core\Type\TextType;
     #[AdminRoute(path:('/reclamo/current'), name: 'reclamo_current')]
     class ReclamoCrudController extends AbstractCrudController
     {
@@ -93,6 +96,7 @@
                 ->setSearchFields(['Servicio', 'numeroCliente', 'Domicilio', 'Usuario', 'Motivo'])
                 ->setDefaultSort(['id' => 'DESC'])
                 ->showEntityActionsInlined();
+
         }
 
         public function configureFilters(Filters $filters): Filters
@@ -151,6 +155,17 @@
                 DateTimeField::new('fechaCreacion')
                     ->setFormat('dd/MM/yyyy HH:mm')
                     ->hideOnForm(),
+                DateTimeField::new('fechaDeVisualizacion')
+                    ->onlyOnDetail()
+                    ->setLabel('Visualización'),
+
+                DateTimeField::new('fechaCierre')
+                    ->onlyOnDetail()
+                    ->setLabel('Fecha de cierre'),
+
+                TextField::new('userCierre')
+                    ->onlyOnDetail()
+                    ->setLabel('Cerrado por'),
             ];
         }
 
@@ -165,18 +180,15 @@
                     return $workflow->can($entity, 'to_success');
                 });
             $cerrarAction = Action::new('cerrarReclamo', 'Cerrar Reclamo', 'fa fa-check-circle')
-                ->linkToCrudAction('cerrarReclamo')
+                ->linkToRoute('reclamo_close', function (Reclamo $reclamo): array {
+                    return [
+                        'reclamo' => $reclamo->getId(),
+                    ];
+                })
                 ->setCssClass('btn btn-danger')
                 ->displayIf(static function ($entity) use ($workflow) {
                     return $workflow->can($entity, 'to_close');
                 });
-            $impresoAction = Action::new('impresoReclamo', 'Impreso', 'fa fa-check-circle')
-                ->linkToCrudAction('impresoReclamo')
-                ->setCssClass('btn btn-primary')
-                ->displayIf(static function ($entity) use ($workflow) {
-                    return $workflow->can($entity, 'to_print');
-                });
-
             $derivarAction = Action::new('derivarReclamo', 'Derivar a guardia', 'fa fa-check-circle')
                 ->linkToCrudAction('derivarReclamo')
                 ->setCssClass('btn btn-primary')
@@ -186,7 +198,8 @@
 
             $pdfAction = Action::new('reclamoPDF', 'Generar pdf', 'fa fa-file-pdf')
                 ->linkToCrudAction('reclamoPDF')
-                ->setCssClass('btn btn-danger');
+                ->setCssClass('btn btn-danger')
+                ;
 
             $generateTicketsBatch = Action::new('reclamoPDFBatch', 'Generar Tickets')
                 ->linkToCrudAction('reclamoPDFBatch')
@@ -198,7 +211,6 @@
             return $actions
 
                 ->add(Crud::PAGE_INDEX, Action::DETAIL)
-                ->add(Crud::PAGE_DETAIL, $impresoAction)
                 ->add(Crud::PAGE_DETAIL, $derivarAction)
                 ->add(Crud::PAGE_DETAIL, $atendidoAction)
                 ->add(Crud::PAGE_DETAIL, $cerrarAction)
@@ -207,7 +219,6 @@
                 ->setPermission(Action::NEW, 'ROLE_RECLAMO_ADMIN')
                 ->setPermission(Action::EDIT, 'ROLE_RECLAMO_ADMIN')
                 ->setPermission(Action::DELETE, 'ROLE_RECLAMO_ADMIN')
-
                 ;
 
 
@@ -229,20 +240,39 @@
             return $this->redirectToRoute('admin_reclamo_current_detail', ['entityId' => $reclamo->getId()]);
 
         }
-        #[AdminRoute(path: '/reclamo/cerrado', name: 'reclamo_cerrado')]
+        #[AdminRoute(path: '/reclamo/cerrado/{id}', name: 'reclamo_cerrado')]
         public function cerrarReclamo(AdminContext $context): Response
         {
             $reclamo = $context->getEntity()->getInstance();
 
+            // ✅ 1. APLICAMOS EL WORKFLOW
             $this->workflow->apply($reclamo, 'to_close');
-            $this->registry->getManager()->persist($reclamo);
-            $this->registry->getManager()->flush();
+
+            // ✅ 2. FECHA DE CIERRE AUTOMÁTICA
+            $reclamo->setFechaCierre(new \DateTime());
+
+            // ✅ 3. USUARIO QUE CERRÓ EL RECLAMO
+            $usuario = $this->security->getUser();
+            $reclamo->setUserCierre($usuario ? $usuario->getUserIdentifier() : 'Sistema');
+
+            // ✅ 4. GUARDAMOS
+            $this->entityManager->persist($reclamo);
+            $this->entityManager->flush();
+
+            // (opcional) mail
             $this->sendEmail($reclamo);
 
-            $this->addFlash('success', sprintf('El reclamo N°%d se ha cerrado correctamente.', $reclamo->getId()));
+            $this->addFlash('success', sprintf(
+                'El reclamo N°%d se cerró correctamente.',
+                $reclamo->getId()
+            ));
 
-            return $this->redirectToRoute('admin_reclamo_current_detail', ['entityId' => $reclamo->getId()]);
+            return $this->redirectToRoute(
+                'admin_reclamo_current_detail',
+                ['entityId' => $reclamo->getId()]
+            );
         }
+
         #[AdminRoute(path: '/reclamo/pendiente', name: 'reclamo_pendiente')]
         public function pendingReclamo(AdminContext $context): Response
         {
@@ -274,26 +304,6 @@
             );
 
             return $this->redirectToRoute('admin_reclamo_current_index');
-        }
-
-        #[AdminRoute(path: '/reclamo/impreso', name: 'reclamo_impreso')]
-        public function impresoReclamo(AdminContext $context): Response
-        {
-            $reclamo = $context->getEntity()->getInstance();
-
-            if ($reclamo->getEstado() === 'Atendiendo'){
-                $this->workflow->apply($reclamo, 'to_print');
-
-                $this->registry->getManager()->persist($reclamo);
-
-                $this->registry->getManager()->flush();
-                $this->sendEmail($reclamo);
-                return $this->reclamoPDF($context);
-
-            } else {
-              $this->addFlash('info', 'El reclamo ya fue impreso.');
-              return $this->redirectToRoute('admin_reclamo_current_detail', ['entityId' => $reclamo->getId()]);
-            }
         }
 
 
@@ -397,14 +407,14 @@
                 return $queryBuilder;
             }
 
-            if ($this->security->isGranted('ROLE_RECLAMO_ATENCION_TELEFONISTA')) {
-                $queryBuilder
-                    ->andWhere('entity.estado IN (:estados)')
-                    ->setParameter('estados', ['Finalizado', 'Impreso']);
-
+            if ($this->security->isGranted('ROLE_RECLAMO_ADMIN')) {
                 return $queryBuilder;
             }
-            if ($this->security->isGranted('ROLE_CREACION_RECLAMO')) {
+
+            if ($this->security->isGranted('ROLE_RECLAMO_ATENCION_TELEFONISTA')) {
+                return $queryBuilder;
+            }
+            if ($this->security->isGranted('ROLE_RECLAMO_CREACION')) {
                 $queryBuilder
                     ->andWhere('entity.estado = :estado')
                     ->setParameter('estado', 'Creado');
@@ -413,30 +423,40 @@
             }
 
             if ($this->security->isGranted('ROLE_RECLAMO_GUARDIA_ENERGIA')) {
+
                 $queryBuilder
                     ->andWhere('entity.Servicio = :servicio')
-                    ->setParameter('servicio', 'Energia')
-                    ->andWhere('entity.estado IN (:estados)')
-                    ->setParameter('estados', ['En Guardia', 'Atendiendo']);
+                    ->setParameter('servicio', 'Energia');
+
+                if (!array_key_exists('estado', $searchDto->getAppliedFilters())) {
+                    $queryBuilder
+                        ->andWhere('entity.estado = :estado')
+                        ->setParameter('estado', 'En Guardia');
+                }
 
                 return $queryBuilder;
             }
 
 
             if ($this->security->isGranted('ROLE_RECLAMO_GUARDIA_SANEAMIENTO')) {
+
                 $queryBuilder
                     ->andWhere('entity.Servicio IN (:servicios)')
-                    ->setParameter('servicios', ['Agua', 'Cloaca'])
-                    ->andWhere('entity.estado IN (:estados)')
-                    ->setParameter('estados', ['En Guardia', 'Atendiendo']);
+                    ->setParameter('servicios', ['Agua', 'Cloaca']);
+
+                if (!array_key_exists('estado', $searchDto->getAppliedFilters())) {
+                    $queryBuilder
+                        ->andWhere('entity.estado = :estado')
+                        ->setParameter('estado', 'En Guardia');
+                }
 
                 return $queryBuilder;
             }
 
 
-            if ($this->security->isGranted('ROLE_RECLAMO_ADMIN')) {
-                return $queryBuilder;
-            }
+
+
+
 
             return $queryBuilder;
 

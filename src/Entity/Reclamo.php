@@ -17,6 +17,9 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Context\ExecutionContextInterface;
 use App\Validator\Constraints as AppAssert;
+use Gedmo\Mapping\Annotation as Gedmo;
+
+
 
 
 #[ORM\Entity(repositoryClass: ReclamoRepository::class)]
@@ -42,10 +45,6 @@ use App\Validator\Constraints as AppAssert;
         new Get(),
         new GetCollection(),
     ]
-)]
-#[UniqueEntity(
-    fields: ['numeroCliente'],
-    message: 'Este número de cliente ya posee un reclamo registrado.'
 )]
 #[Assert\Callback('validate')]
 class Reclamo
@@ -83,6 +82,20 @@ class Reclamo
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
     private ?\DateTimeInterface $fechaCreacion = null;
+
+    #[Gedmo\Timestampable(on: 'change', field: 'estado', value: 'Atendiendo')]
+    #[ORM\Column(nullable: true)]
+    private ?\DateTime $fechaDeVisualizacion = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?\DateTime $fechaCierre = null;
+    #[ORM\Column(nullable: true)]
+    private ?String $userCierre = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?String $causa = null;
+
+
 
     public function __construct()
     {
@@ -204,6 +217,52 @@ class Reclamo
                 ->addViolation();
         }
     }
+
+    public function getFechaDeVisualizacion(): ?\DateTime
+    {
+        return $this->fechaDeVisualizacion;
+    }
+
+    public function setFechaDeVisualizacion(?\DateTime $fechaDeVisualizacion): static
+    {
+        $this->fechaDeVisualizacion = $fechaDeVisualizacion;
+
+        return $this;
+    }
+
+    public function getFechaCierre(): ?\DateTime
+    {
+        return $this->fechaCierre;
+    }
+
+    public function setFechaCierre(?\DateTime $fechaCierre): void
+    {
+        $this->fechaCierre = $fechaCierre;
+    }
+
+    public function getUserCierre(): ?string
+    {
+        return $this->userCierre;
+    }
+
+    public function setUserCierre(?string $userCierre): void
+    {
+        $this->userCierre = $userCierre;
+    }
+
+    public function getCausa(): ?string
+    {
+        return $this->causa;
+    }
+
+    public function setCausa(?string $causa): void
+    {
+        $this->causa = $causa;
+    }
+
+
+
+
 }
 
 

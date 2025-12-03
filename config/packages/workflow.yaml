@@ -13,7 +13,6 @@ framework:
             places:
                 - Creado
                 - En Guardia
-                - Impreso
                 - Atendiendo
                 - Finalizado
             transitions:
@@ -23,11 +22,8 @@ framework:
                 to_success:
                     from: En Guardia
                     to: Atendiendo
-                to_print:
-                    from: Atendiendo
-                    to: Impreso
                 to_close:
-                    from: Impreso
+                    from: Atendiendo
                     to: Finalizado
 
 

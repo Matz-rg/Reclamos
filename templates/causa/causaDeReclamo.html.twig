@@ -1,0 +1,60 @@
+{% extends '@EasyAdmin/page/content.html.twig' %}
+
+{% block page_actions %}
+    <a href="{{ volver_al_detalle }}" class="btn btn-secondary">Volver al Reclamo</a>
+
+{% endblock %}
+
+{% block main %}
+
+    <h2 class="mb-4">Cierre del Reclamo</h2>
+
+    <div class="ea-card mb-4" style="padding: 20px;">
+        <h5 class="mb-3">Información del Reclamo</h5>
+
+        <div class="row">
+            <div class="col-md-6 mb-2">
+                <strong>ID:</strong> {{ reclamo.id }}
+            </div>
+            <div class="col-md-6 mb-2">
+                <strong>Servicio:</strong> {{ reclamo.servicio }}
+            </div>
+
+            <div class="col-md-6 mb-2">
+                <strong>N° Cliente:</strong> {{ reclamo.numeroCliente }}
+            </div>
+            <div class="col-md-6 mb-2">
+                <strong>Medidor:</strong> {{ reclamo.numeroMedidor }}
+            </div>
+            <div class="col-md-12 mb-2">
+                <strong>Domicilio:</strong> {{ reclamo.domicilio }}
+            </div>
+
+            <div class="col-md-6 mb-2">
+                <strong>Usuario:</strong> {{ reclamo.usuario }}
+            </div>
+
+            <div class="col-md-6 mb-2">
+                <strong>Motivo:</strong> {{ reclamo.motivo }}
+            </div>
+
+            <div class="col-md-12 mb-2">
+                <strong>Detalle:</strong>
+                <div class="ea-dark-box p-2" style="background: #1f1f1f; border-radius: 6px;">
+                    {{ reclamo.detalle }}
+                </div>
+            </div>
+
+            <div class="col-md-6 mb-2">
+                <strong>Estado actual:</strong> {{ reclamo.estado }}
+            </div>
+        </div>
+        <a href="{{ path('reclamo_close', { reclamo: reclamo.id }) }}" class="btn btn-danger">
+            Cerrar Reclamo
+        </a>
+    </div>
+
+
+
+
+{% endblock %}
