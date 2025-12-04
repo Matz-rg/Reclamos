@@ -3,6 +3,7 @@
 namespace App\Controller\Admin;
 
 use App\Entity\Reclamo;
+use App\Entity\Siniestro;
 use App\Entity\User;
 use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminDashboard;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Dashboard;
@@ -54,6 +55,7 @@ class DashboardController extends AbstractDashboardController
         yield MenuItem::linkToDashboard('Dashboard', 'fa fa-home');
         yield MenuItem::linkToCrud('Reclamos', 'fas fa-list', Reclamo::class);
         yield MenuItem::linkToCrud('User', 'fas fa-list', User::class);
+        yield MenuItem::linkToCrud('Siniestro', 'fas fa-list', Siniestro::class);
     }
 
 

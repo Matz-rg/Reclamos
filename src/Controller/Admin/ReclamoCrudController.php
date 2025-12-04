@@ -47,6 +47,8 @@
     use Symfony\Component\Validator\Constraints as Assert;
     use EasyCorp\Bundle\EasyAdminBundle\Field\Field;
     use Symfony\Component\Form\Extension\Core\Type\TextType;
+    use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
+
     #[AdminRoute(path:('/reclamo/current'), name: 'reclamo_current')]
     class ReclamoCrudController extends AbstractCrudController
     {
@@ -166,12 +168,15 @@
                 TextField::new('userCierre')
                     ->onlyOnDetail()
                     ->setLabel('Cerrado por'),
+                AssociationField::new('siniestro')
+                    ->setRequired(false),
             ];
         }
 
         public function configureActions(Actions $actions): Actions
         {
             $workflow = $this->workflow;
+
 
             $atendidoAction = Action::new('atencionReclamo', 'Atendido', 'fa fa-check-circle')
                 ->linkToCrudAction('atencionReclamo')

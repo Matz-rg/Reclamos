@@ -79,11 +79,13 @@ final class ReclamoFactory extends PersistentProxyObjectFactory
             'numeroMedidor' => 'MED-' . self::faker()->numerify('########'),
             'Detalle' => self::faker()->sentence(),
             'Estado' => self::faker()->randomElement(['Creado', 'En Guardia']),
+            'siniestro' => \App\Factory\SiniestroFactory::randomOrCreate(),
         ];
     }
 
     protected function initialize(): static
     {
+
         return $this;
     }
 }

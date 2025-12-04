@@ -1,12 +1,8 @@
 @import "~@fortawesome/fontawesome-free/css/all.min.css";
 
-
-
-
 :root {
   --bg: #ffffff;
-  --panel: #f8fafc;
-  --panel-2: #f1f5f9;
+    --panel-2: #f1f5f9;
   --accent: #1e3a8a;
   --accent-2: #1d4ed8;
   --text: #0f172a;
@@ -51,7 +47,7 @@ body {
 
 /* Fine-tuning (Bootstrap handles most styles via utilities) */
 .hero p {
-  color: var(--muted);
+
   max-width: 820px;
   margin: 0 auto 1.25rem;
   line-height: 1.65;
@@ -75,3 +71,5 @@ body {
 }
 
 /*barra de progreso*/
+
+

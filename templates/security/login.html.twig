@@ -1,40 +1,174 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Log in!{% endblock %}
+{% block title %}Iniciar Sesión{% endblock %}
 
 {% block body %}
-    <form method="post">
-        {% if error %}
-            <div class="alert alert-danger">{{ error.messageKey|trans(error.messageData, 'security') }}</div>
-        {% endif %}
+    <style>
+        body {
+            background: #f4f7fb;
+        }
 
-        {% if app.user %}
-            <div class="mb-3">
-                You are logged in as {{ app.user.userIdentifier }}, <a href="{{ path('app_logout') }}">Logout</a>
+        .login-wrapper {
+            min-height: 90vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .login-card {
+            background: #ffffff;
+            border-radius: 14px;
+            box-shadow:
+                0 15px 35px rgba(0, 0, 0, 0.12),
+                0 5px 15px rgba(0, 0, 0, 0.08);
+            padding: 40px;
+            width: 100%;
+            max-width: 430px;
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .login-header h1 {
+            color: #0d47a1;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+            font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            margin-bottom: 6px;
+        }
+
+        .login-header p {
+            font-family: "Segoe UI", Roboto, Arial, sans-serif;
+            font-weight: 400;
+        }
+
+
+        .login-header p {
+            color: #6c757d;
+            font-size: 14px;
+            margin: 0;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: #1e3c72;
+        }
+
+        .form-control {
+            border-radius: 8px;
+            padding: 12px;
+            border: 1px solid #ccd8ea;
+        }
+
+        .form-control:focus {
+            border-color: #0d47a1;
+            box-shadow: 0 0 0 2px rgba(13,71,161,0.15);
+        }
+
+        .btn-login {
+            background: #0d47a1;
+            color: #fff;
+            width: 100%;
+            border-radius: 8px;
+            padding: 12px;
+            font-weight: 700;
+            letter-spacing: 0.4px;
+            transition: 0.25s;
+        }
+
+        .btn-login:hover {
+            background: #08357a;
+            transform: translateY(-1px);
+            color: #fff; }
+
+        .alert {
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .login-footer {
+            text-align: center;
+            margin-top: 25px;
+            font-size: 13px;
+            color: #7a8ca3;
+        }
+
+        .line-decor {
+            height: 4px;
+            width: 60px;
+            background: #0d47a1;
+            border-radius: 99px;
+            margin: 15px auto 0;
+        }
+    </style>
+
+    <div class="login-wrapper">
+        <div class="login-card">
+
+            <div class="login-header">
+                <h1>Sistema de Reclamos</h1>
+                <p>Acceso a usuarios habilitados</p>
+                <div class="line-decor"></div>
             </div>
-        {% endif %}
 
-        <h1 class="h3 mb-3 font-weight-normal">Please sign in</h1>
-        <label for="username">Email</label>
-        <input type="email" value="{{ last_username }}" name="_username" id="username" class="form-control" autocomplete="email" required autofocus>
-        <label for="password">Password</label>
-        <input type="password" name="_password" id="password" class="form-control" autocomplete="current-password" required>
-        <input type="hidden" name="_csrf_token" data-controller="csrf-protection" value="{{ csrf_token('authenticate') }}">
+            {% if error %}
+                <div class="alert alert-danger">
+                    {{ error.messageKey|trans(error.messageData, 'security') }}
+                </div>
+            {% endif %}
 
-        {#
-            Uncomment this section and add a remember_me option below your firewall to activate remember me functionality.
-            See https://symfony.com/doc/current/security/remember_me.html
+            {% if app.user %}
+                <div class="alert alert-info">
+                    Estás logueado como <strong>{{ app.user.userIdentifier }}</strong><br>
+                    <a href="{{ path('app_logout') }}">Cerrar sesión</a>
+                </div>
+            {% endif %}
 
-            <div class="checkbox mb-3">
-                <input type="checkbox" name="_remember_me" id="_remember_me">
-                <label for="_remember_me">Remember me</label>
+            <form method="post">
+
+                <div class="mb-3">
+                    <label for="username" class="form-label">Correo electrónico</label>
+                    <input
+                        type="email"
+                        value="{{ last_username }}"
+                        name="_username"
+                        id="username"
+                        class="form-control"
+                        autocomplete="email"
+                        required
+                        autofocus>
+                </div>
+
+                <div class="mb-4">
+                    <label for="password" class="form-label">Contraseña</label>
+                    <input
+                        type="password"
+                        name="_password"
+                        id="password"
+                        class="form-control"
+                        autocomplete="current-password"
+                        required>
+                </div>
+
+                <input
+                    type="hidden"
+                    name="_csrf_token"
+                    data-controller="csrf-protection"
+                    value="{{ csrf_token('authenticate') }}">
+
+                <button class="btn btn-login" type="submit">
+                    Ingresar al sistema
+                </button>
+
+            </form>
+
+            <div class="login-footer">
+                © {{ "now"|date("Y") }} Sistema de Reclamos
             </div>
-        #}
 
-
-
-        <button class="btn btn-lg btn-primary" type="submit">
-            Sign in
-        </button>
-    </form>
+        </div>
+    </div>
 {% endblock %}
+

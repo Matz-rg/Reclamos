@@ -4,6 +4,12 @@
 
 {% block stylesheets %}
     {{ encore_entry_link_tags('app') }}
+    <style>
+        html, body {
+            background-color: #ffffff !important;
+            background-image: none !important;
+        }
+    </style>
 {% endblock %}
 
 {% block body %}
@@ -49,7 +55,7 @@
         </div>
 
 
-        <section id="sistema" class="section my-3 p-4 bg-light rounded-3 text-body border shadow-sm">
+        <section id="sistema" class="section my-3 p-4 bg-white rounded-3 text-body border shadow-sm">
             <h2 class="text-primary fw-bold d-flex align-items-center gap-2 mb-2">Cómo funciona</h2>
             <div class="steps row gy-3 text-muted">
                 <div class="step col-12 d-flex align-items-start gap-2 p-3 bg-white rounded-3 border shadow-sm"><span class="num badge bg-primary rounded-circle d-inline-flex align-items-center justify-content-center fw-bold shadow-sm">1</span><div class="content">Cree su reclamo desde el sistema y obtenga un número de seguimiento.</div></div>
@@ -59,7 +65,7 @@
             </div>
         </section>
 
-        <section id="contactos" class="section my-3 p-4 bg-light rounded-3 text-body border shadow-sm">
+        <section id="contactos" class="section my-3 p-4 bg-white rounded-3 text-body border shadow-sm">
             <h2 class="text-primary fw-bold d-flex align-items-center gap-2 mb-2">Contactos</h2>
             <p>Si necesita asistencia adicional, comuníquese con atención al cliente por los canales habituales o acérquese a una sucursal.</p>
         </section>

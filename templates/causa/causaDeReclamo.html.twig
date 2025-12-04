@@ -1,60 +1,212 @@
-{% extends '@EasyAdmin/page/content.html.twig' %}
+{% extends 'base.html.twig' %}
 
-{% block page_actions %}
-    <a href="{{ volver_al_detalle }}" class="btn btn-secondary">Volver al Reclamo</a>
+{% block title %}Cierre de Reclamo{% endblock %}
 
-{% endblock %}
+{% block body %}
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
-{% block main %}
+        :root {
+            --bg: #0d0d0d;
+            --bg-card: #171717;
+            --bg-soft: #202020;
+            --border: #2e2e2e;
 
-    <h2 class="mb-4">Cierre del Reclamo</h2>
+            --text: #dcdcdc;
+            --text-strong: #ffffff;
+            --text-muted: #9e9e9e;
 
-    <div class="ea-card mb-4" style="padding: 20px;">
-        <h5 class="mb-3">Información del Reclamo</h5>
+            --primary: #3a3a3a;
+            --primary-hover: #505050;
 
-        <div class="row">
-            <div class="col-md-6 mb-2">
-                <strong>ID:</strong> {{ reclamo.id }}
-            </div>
-            <div class="col-md-6 mb-2">
-                <strong>Servicio:</strong> {{ reclamo.servicio }}
-            </div>
+            --radius: 14px;
+        }
 
-            <div class="col-md-6 mb-2">
-                <strong>N° Cliente:</strong> {{ reclamo.numeroCliente }}
-            </div>
-            <div class="col-md-6 mb-2">
-                <strong>Medidor:</strong> {{ reclamo.numeroMedidor }}
-            </div>
-            <div class="col-md-12 mb-2">
-                <strong>Domicilio:</strong> {{ reclamo.domicilio }}
-            </div>
+        body {
+            background: var(--bg);
+            font-family: "Inter", sans-serif;
+            color: var(--text);
+        }
 
-            <div class="col-md-6 mb-2">
-                <strong>Usuario:</strong> {{ reclamo.usuario }}
-            </div>
+        /* Centrado */
+        .wrapper-center {
+            display: flex;
+            justify-content: center;
+            width: 100%;
+            margin-top: 40px;
+        }
 
-            <div class="col-md-6 mb-2">
-                <strong>Motivo:</strong> {{ reclamo.motivo }}
-            </div>
+        /* CARD */
+        .ea-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 0;
+            width: 880px; /* Centrado y ancho ideal */
+            box-shadow: 0 0 24px rgba(0,0,0,0.35);
+        }
 
-            <div class="col-md-12 mb-2">
-                <strong>Detalle:</strong>
-                <div class="ea-dark-box p-2" style="background: #1f1f1f; border-radius: 6px;">
-                    {{ reclamo.detalle }}
+        .ea-card-header {
+            padding: 1.4rem 1.7rem;
+            border-bottom: 1px solid var(--border);
+            background: #141414;
+            border-top-left-radius: var(--radius);
+            border-top-right-radius: var(--radius);
+        }
+
+        .ea-card-header h5 {
+            font-size: 1.15rem;
+            margin: 0;
+            font-weight: 600;
+            color: var(--text-strong);
+        }
+
+        .ea-card-body {
+            padding: 2rem;
+        }
+
+        /* TEXTOS */
+        .ea-label {
+            font-weight: 600;
+            color: var(--text-strong);
+            font-size: 0.9rem;
+        }
+
+        .ea-value {
+            margin-left: 6px;
+            font-weight: 400;
+        }
+
+        .ea-muted-box {
+            background: var(--bg-soft);
+            padding: .9rem;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+        }
+
+        /* FORM */
+        .ea-form-control {
+            background: var(--bg-soft) !important;
+            border: 1px solid var(--border) !important;
+            padding: 0.7rem;
+            color: var(--text-strong);
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            width: 100%;
+        }
+
+        .ea-form-control:focus {
+            outline: none;
+            border-color: #666;
+            box-shadow: 0 0 0 2px rgba(255,255,255,0.1);
+        }
+
+        /* BOTÓN OSCURO ELEGANTE */
+        .ea-btn-primary {
+            background: var(--primary);
+            color: white;
+            padding: 0.7rem 1.4rem;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            font-weight: 500;
+            transition: 0.25s;
+        }
+
+        .ea-btn-primary:hover {
+            background: var(--primary-hover);
+            transform: translateY(-2px);
+        }
+
+        /* Botón volver */
+        .btn-volver {
+            background: #1a1a1a;
+            border: 1px solid var(--border);
+            padding: 0.55rem 1rem;
+            border-radius: 8px;
+            color: var(--text);
+            font-size: .9rem;
+            transition: 0.25s;
+            st
+        }
+
+        .btn-volver:hover {
+            background: #222;
+        }
+
+        /* GRID */
+        .data-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            column-gap: 10rem;
+            row-gap: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .ea-card {
+                width: 95%;
+            }
+            .data-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+
+
+    <div class="ea-dark-mode">
+
+        <!-- Header -->
+        <header class="ea-header" style="padding:1rem 2rem; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border);">
+            <h1 style="margin:0; font-size:1.8rem; color:white; font-weight:600;">Cierre del Reclamo</h1>
+
+            <a href="{{ volver_al_detalle }}" class="btn-volver">
+                ← Volver al Reclamo
+            </a>
+        </header>
+
+        <!-- CARD CENTRADA -->
+        <div class="wrapper-center">
+            <div class="ea-card">
+
+                <div class="ea-card-header">
+                    <h5>Información del Reclamo</h5>
+                </div>
+
+                <div class="ea-card-body">
+
+                    <div class="data-grid">
+                        <div><span class="ea-label">ID:</span><span class="ea-value">{{ reclamo.id }}</span></div>
+                        <div><span class="ea-label">Servicio:</span><span class="ea-value">{{ reclamo.servicio }}</span></div>
+
+                        <div><span class="ea-label">N° Cliente:</span><span class="ea-value">{{ reclamo.numeroCliente }}</span></div>
+                        <div><span class="ea-label">Medidor:</span><span class="ea-value">{{ reclamo.numeroMedidor }}</span></div>
+
+                        <div style="grid-column: 1 / 3;">
+                            <span class="ea-label">Domicilio:</span>
+                            <span class="ea-value">{{ reclamo.domicilio }}</span>
+                        </div>
+
+                        <div><span class="ea-label">Usuario:</span><span class="ea-value">{{ reclamo.usuario }}</span></div>
+                        <div><span class="ea-label">Motivo:</span><span class="ea-value">{{ reclamo.motivo }}</span></div>
+
+                        <div style="grid-column:1/3;">
+                            <span class="ea-label">Detalle:</span>
+                            <div class="ea-muted-box">{{ reclamo.detalle }}</div>
+                        </div>
+
+                        <div style="grid-column:1/3;">
+                            <span class="ea-label">Estado actual:</span>
+                            <span class="ea-value">{{ reclamo.estado }}</span>
+                        </div>
+                    </div>
+
+                    <div style="margin-top:2rem;" >
+                        {{ form(form) }}
+                    </div>
+
                 </div>
             </div>
-
-            <div class="col-md-6 mb-2">
-                <strong>Estado actual:</strong> {{ reclamo.estado }}
-            </div>
         </div>
-        <a href="{{ path('reclamo_close', { reclamo: reclamo.id }) }}" class="btn btn-danger">
-            Cerrar Reclamo
-        </a>
+
     </div>
-
-
-
-
 {% endblock %}

@@ -14,6 +14,7 @@ framework:
                 - Creado
                 - En Guardia
                 - Atendiendo
+                - siniestro
                 - Finalizado
             transitions:
                 to_derived:
@@ -25,5 +26,11 @@ framework:
                 to_close:
                     from: Atendiendo
                     to: Finalizado
+                crear_siniestro:
+                    from: creado
+                    to: siniestro
+                cerrar_siniestro:
+                        from: siniestro
+                        to: finalizado
 
 

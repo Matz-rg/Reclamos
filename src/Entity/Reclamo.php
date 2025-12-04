@@ -94,12 +94,23 @@ class Reclamo
 
     #[ORM\Column(nullable: true)]
     private ?String $causa = null;
-
-
+    #[ORM\ManyToOne(targetEntity: Siniestro::class)]
+    #[ORM\JoinColumn(nullable: true)]
+    private ?Siniestro $siniestro = null;
 
     public function __construct()
     {
         $this->fechaCreacion = new \DateTime();
+    }
+
+    public function getSiniestro(): ?Siniestro
+    {
+        return $this->siniestro;
+    }
+
+    public function setSiniestro(?Siniestro $siniestro): void
+    {
+        $this->siniestro = $siniestro;
     }
 
     public function getServicio(): ?string
