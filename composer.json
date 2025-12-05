@@ -47,7 +47,8 @@
         "symfony/webpack-encore-bundle": "^2.3",
         "symfony/workflow": "7.3.*",
         "symfony/yaml": "7.3.*",
-        "twig/cssinliner-extra": "^3.21"
+        "twig/cssinliner-extra": "^3.21",
+
     },
     "config": {
         "allow-plugins": {

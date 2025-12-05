@@ -90,6 +90,15 @@
             return Reclamo::class;
         }
 
+        public function createEntity(string $entityFqcn): Reclamo
+        {
+            $reclamo = new Reclamo();
+            $estado = $this->workflow->getMarking($reclamo)->getPlaces();
+            $reclamo->setEstado(array_key_first($estado));
+
+            return $reclamo;
+        }
+
         public function configureCrud(Crud $crud): Crud
         {
             return $crud
@@ -112,7 +121,6 @@
                 ->add(TextFilter::new('Usuario'))
                 ->add(TextFilter::new('Motivo'))
                 ->add(ChoiceFilter::new('estado')->setChoices([
-                    'Impreso' => 'Impreso',
                     'Atendiendo' => 'Atendiendo',
                     'En Guardia' => 'En Guardia',
                     'Creado' => 'Creado',
@@ -124,7 +132,7 @@
         {
             return [
                 IdField::new('id')->onlyOnIndex(),
-                TextField::new('Servicio'),
+
                 TextField::new('numeroCliente')
                     ->setFormTypeOptions([
                         'constraints' => [
@@ -134,42 +142,46 @@
                         ],
                         'help' => 'El número de cliente debe tener hasta 12 dígitos',
                     ]),
-                TextField::new('numeroMedidor'),
-                TextField::new('Domicilio'),
-                TextField::new('Usuario'),
-                TextField::new('Motivo'),
-                TextareaField::new('Detalle')->hideOnIndex(),
-                ChoiceField::new('estado')
+                ChoiceField::new('Servicio')
+                   ->setChoices([
+                       'Energia' => 'Energia',
+                       'Saneamiento' => 'Saneamiento',
+                   ]),
+                ChoiceField::new('Motivo')
                     ->setChoices([
-                        'Impreso' => 'Impreso',
-                        'Atendiendo' => 'Atendiendo',
-                        'En Guardia' => 'En Guardia',
-                        'Creado' => 'Creado',
-                        'Finalizado' => 'Finalizado',
-                    ])
-                    ->renderAsBadges([
-                        'Impreso' => 'warning',
-                        'Atendiendo' => 'success',
-                        'En Guardia' => 'info',
-                        'Creado' => 'secondary',
-                        'Finalizado' => 'danger',
+                        'Corte de servicio' => 'Corte de servicio',
+                        'Facturación incorrecta' => 'Facturacion incorrecta',
+                        'Problema técnico' => 'Problema tecnico',
+                        'Falta de suministro' => 'Falta de suministro',
+                        'Lectura de medidor errónea' => 'Lectura de medidor',
+                        'Consulta general' => 'Consulta general',
+                        'Reclamo por demora' => 'Reclamo por demora',
+                        'Problema de presión' => 'Problema de presión',
+                        'Fuga reportada' => 'Fuga reportada',
+                        'Instalación defectuosa' => 'Instalación defectuosa',
                     ]),
+                TextareaField::new('Detalle')
+                    ->hideOnIndex()
+                    ->setLabel('Observaciones')
+                    ->setHelp('Este campo es opcional'),
                 DateTimeField::new('fechaCreacion')
                     ->setFormat('dd/MM/yyyy HH:mm')
                     ->hideOnForm(),
                 DateTimeField::new('fechaDeVisualizacion')
                     ->onlyOnDetail()
                     ->setLabel('Visualización'),
-
                 DateTimeField::new('fechaCierre')
                     ->onlyOnDetail()
                     ->setLabel('Fecha de cierre'),
-
                 TextField::new('userCierre')
                     ->onlyOnDetail()
                     ->setLabel('Cerrado por'),
                 AssociationField::new('siniestro')
-                    ->setRequired(false),
+                    ->setRequired(false)
+                     ->autocomplete(),
+                AssociationField::new('mantenimiento')
+                    ->setRequired(false)
+                    ->autocomplete(),
             ];
         }
 
@@ -250,17 +262,17 @@
         {
             $reclamo = $context->getEntity()->getInstance();
 
-            // ✅ 1. APLICAMOS EL WORKFLOW
+            //  1. APLICAMOS EL WORKFLOW
             $this->workflow->apply($reclamo, 'to_close');
 
-            // ✅ 2. FECHA DE CIERRE AUTOMÁTICA
+            //  2. FECHA DE CIERRE AUTOMÁTICA
             $reclamo->setFechaCierre(new \DateTime());
 
-            // ✅ 3. USUARIO QUE CERRÓ EL RECLAMO
+            //  3. USUARIO QUE CERRÓ EL RECLAMO
             $usuario = $this->security->getUser();
             $reclamo->setUserCierre($usuario ? $usuario->getUserIdentifier() : 'Sistema');
 
-            // ✅ 4. GUARDAMOS
+            //  4. GUARDAMOS
             $this->entityManager->persist($reclamo);
             $this->entityManager->flush();
 

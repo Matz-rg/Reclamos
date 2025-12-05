@@ -58,7 +58,7 @@ final class ReclamoFactory extends PersistentProxyObjectFactory
         return [
             'Domicilio' => self::faker()->address(),
             'Motivo' => self::faker()->randomElement([
-                'Corte de servicio',
+                'Corte de servicio' => 'Corte de servicio',
                 'Facturación incorrecta',
                 'Problema técnico',
                 'Falta de suministro',
@@ -79,7 +79,8 @@ final class ReclamoFactory extends PersistentProxyObjectFactory
             'numeroMedidor' => 'MED-' . self::faker()->numerify('########'),
             'Detalle' => self::faker()->sentence(),
             'Estado' => self::faker()->randomElement(['Creado', 'En Guardia']),
-            'siniestro' => \App\Factory\SiniestroFactory::randomOrCreate(),
+            'siniestro' => SiniestroFactory::randomOrCreate(),
+            'mantenimiento' => MantenimientoFactory::randomOrCreate(),
         ];
     }
 

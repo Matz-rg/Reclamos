@@ -2,6 +2,7 @@
 
 namespace App\Controller\Admin;
 
+use App\Entity\Mantenimiento;
 use App\Entity\Reclamo;
 use App\Entity\Siniestro;
 use App\Entity\User;
@@ -56,6 +57,7 @@ class DashboardController extends AbstractDashboardController
         yield MenuItem::linkToCrud('Reclamos', 'fas fa-list', Reclamo::class);
         yield MenuItem::linkToCrud('User', 'fas fa-list', User::class);
         yield MenuItem::linkToCrud('Siniestro', 'fas fa-list', Siniestro::class);
+        yield MenuItem::linkToCrud('Mantenimiento', 'fas fa-list', Mantenimiento::class);
     }
 
 

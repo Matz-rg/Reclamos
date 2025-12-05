@@ -98,6 +98,11 @@ class Reclamo
     #[ORM\JoinColumn(nullable: true)]
     private ?Siniestro $siniestro = null;
 
+    #[ORM\ManyToOne(targetEntity: Mantenimiento::class, inversedBy: 'reclamos')]
+    #[ORM\JoinColumn(nullable: true)]
+    private ?Mantenimiento $mantenimiento = null;
+
+
     public function __construct()
     {
         $this->fechaCreacion = new \DateTime();
@@ -270,6 +275,17 @@ class Reclamo
     {
         $this->causa = $causa;
     }
+
+    public function getMantenimiento(): ?Mantenimiento
+    {
+        return $this->mantenimiento;
+    }
+
+    public function setMantenimiento(?Mantenimiento $mantenimiento): void
+    {
+        $this->mantenimiento = $mantenimiento;
+    }
+
 
 
 

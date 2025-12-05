@@ -2,26 +2,20 @@
 
 namespace App\Controller\Admin;
 
-use App\Entity\Siniestro;
+use App\Entity\Mantenimiento;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Field\ChoiceField;
+use EasyCorp\Bundle\EasyAdminBundle\Field\CollectionField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\DateTimeField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextEditorField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 
-
-class SiniestroCrudController extends AbstractCrudController
+class MantenimientoCrudController extends AbstractCrudController
 {
     public static function getEntityFqcn(): string
     {
-        return Siniestro::class;
-    }
-
-    public function createEntity(string $entityFqcn)
-    {
-        return parent::createEntity($entityFqcn);
-
+        return Mantenimiento::class;
     }
 
     public function configureFields(string $pageName): iterable
@@ -31,11 +25,12 @@ class SiniestroCrudController extends AbstractCrudController
                 'Energía' => 'energia',
                 'Saneamiento' => 'saneamiento',
             ]),
-            TextField::new('causa'),
+
+            TextEditorField::new('detalle'),
 
             DateTimeField::new('createdAt')->hideOnForm(),
             DateTimeField::new('updatedAt')->hideOnForm(),
+
         ];
     }
 }
-

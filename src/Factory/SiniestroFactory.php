@@ -27,14 +27,12 @@ final class SiniestroFactory extends PersistentProxyObjectFactory{
         return Siniestro::class;
     }
 
-        /**
-     * @see https://symfony.com/bundles/ZenstruckFoundryBundle/current/index.html#model-factories
-     *
-     * @todo add your default values here
-     */
     protected function defaults(): array|callable    {
         return [
-            'servicio' => self::faker()->randomElement(['energia']),
+            'servicio' => self::faker()->randomElement([
+                'energia',
+                'saneamiento',
+            ]),
             'causa' => self::faker()->sentence(8),
             'createdAt' => new \DateTimeImmutable(),
             'updatedAt' => null,
@@ -42,9 +40,6 @@ final class SiniestroFactory extends PersistentProxyObjectFactory{
         ];
     }
 
-        /**
-     * @see https://symfony.com/bundles/ZenstruckFoundryBundle/current/index.html#initialization
-     */
     protected function initialize(): static
     {
         return $this
